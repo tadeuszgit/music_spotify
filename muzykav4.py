@@ -45,6 +45,7 @@ class Correle:
             yy_pred.append(([self.Prediction_ofCorrelation(coeffiecient, dane) for coeffiecient in coefiecients]))
         ultra_pred = []
         for i, dane in enumerate(dany):
+            print(i)
             dane_x = np.hstack(yy_pred[i][:i]+yy_pred[i][i+1:])
             #dane_x = np.hstack((yy_pred[i][:i],yy_pred[i][i+1:]))
             mega_coeffiecient = self.Correlation(dane_x, wynik=wyniks[i])
@@ -60,12 +61,13 @@ class Correle:
 
 
 
-dany = np.random.random((40,7,3))
-wynik = np.random.random((40,7,2))
+dany = np.random.random((1000,5,3))
+wynik = np.random.random((1000,5,2))
 c = Correle()
+print("DP")
 p = c.Correlation_for_all_dane(dany, wynik)
 print()
-c.Show_theThing(p)
+#c.Show_theThing(p)
 print()
 w = np.zeros((wynik.shape))
 for g in range(wynik.shape[0]):
@@ -73,6 +75,5 @@ for g in range(wynik.shape[0]):
     #w[g] = w[g] / wynik[g]
 c.Show_theThing(np.hstack(wynik))
 print()
-c.Show_theThing(np.hstack(w))
-print(np.mean(w**2)**0.5)
-
+print(p.shape)
+print((np.sum(p > 1) + np.sum(p < 0))/p.shape[0]/p.shape[1])
