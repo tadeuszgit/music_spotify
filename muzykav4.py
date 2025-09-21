@@ -45,7 +45,7 @@ class Correle:
             yy_pred.append(([self.Prediction_ofCorrelation(coeffiecient, dane) for coeffiecient in coefiecients]))
         ultra_pred = []
         for i, dane in enumerate(dany):
-            print(i)
+            #print(i)
             dane_x = np.hstack(yy_pred[i][:i]+yy_pred[i][i+1:])
             #dane_x = np.hstack((yy_pred[i][:i],yy_pred[i][i+1:]))
             mega_coeffiecient = self.Correlation(dane_x, wynik=wyniks[i])
@@ -58,11 +58,26 @@ class Correle:
         return ultra_pred
     
 
+def test_accuracy(max_groups = 200, period = 100, members = 5, atribu = 3, umie = 2):
+    c = Correle()
+    for i in range(9, max_groups):
+        anomalia = []
+        for j in range(period):
+            dany = np.random.random((i, members, atribu))
+            wynik = np.random.random((i, members, umie))
+            p = c.Correlation_for_all_dane(dany, wynik)
+            total_anomalie = np.sum(p > 1) + np.sum(p < 0)
+            total_anomalie = total_anomalie / (p.shape[0] * p.shape[1] - i * members * umie)
+            anomalia.append(total_anomalie)
+        anomalia = np.array(anomalia)
+        print(f"{i}: {np.median(anomalia) * 100:.7f}% {np.mean(anomalia) * 100:.7f}%")
+        #input()
 
-
-
-dany = np.random.random((1000,5,3))
-wynik = np.random.random((1000,5,2))
+test_accuracy(period=100, members=100, atribu = 12, umie = 4)
+print("deon")
+input()
+dany = np.random.random((100,5,3))
+wynik = np.random.random((100,5,2))
 c = Correle()
 print("DP")
 p = c.Correlation_for_all_dane(dany, wynik)
