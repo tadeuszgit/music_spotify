@@ -107,9 +107,11 @@ def test_accuracy(max_groups = 200, period = 100, members = 5, atribu = 3, umie 
 test_accuracy(period=10, members=5, atribu = 3, umie = 2)
 print("deon")
 input()
-
-
+#fdadsdsd
+dany = np.random.random((100, 5, 3))
+wynik = np.random.random((100, 5, 2))
 print("DP")
+c = Correle()
 p = c.Correlation_for_all_dane(dany, wynik)
 print()
 #c.Show_theThing(p)
