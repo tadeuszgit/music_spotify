@@ -1,14 +1,17 @@
 import numpy as np
 
 class Correle:
-    def Show_theThing(self, solution):
+
+    @staticmethod
+    def Show_theThing(solution):
         for row in solution:
             txt = ""
             for dane in row:
                 txt += str(dane) + ";"
             print(txt)
-
-    def Correlation(self, dane, wynik=None, number_wyniks = None):
+    
+    @staticmethod
+    def Correlation(dane, wynik=None, number_wyniks = None):
         #CHECK FOR L2 REGULATION!!!!!!
         if wynik is None:
             total = dane[:]
@@ -30,19 +33,21 @@ class Correle:
 
         return x
     
-    def Prediction_ofCorrelation(self, coeffiecient, dane_onlyX):
+    @staticmethod
+    def Prediction_ofCorrelation(coeffiecient, dane_onlyX):
         ones = np.ones((dane_onlyX.shape[0], 1))
         dane = np.hstack((ones, dane_onlyX))
         y_pred = dane @ coeffiecient
 
         return y_pred
     
-    def Correlation_for_all_dane(self, dany, wyniks, unsafe = False):
-        coefiecients = [self.Correlation(dane, wynik) for dane, wynik in zip(dany, wyniks)]
+    @staticmethod
+    def Correlation_for_all_dane(dany, wyniks, unsafe = False):
+        coefiecients = [Correle.Correlation(dane, wynik) for dane, wynik in zip(dany, wyniks)]
         
         yy_pred = []
         for dane in dany:
-            yy_pred.append(([self.Prediction_ofCorrelation(coeffiecient, dane) for coeffiecient in coefiecients]))
+            yy_pred.append(([Correle.Prediction_ofCorrelation(coeffiecient, dane) for coeffiecient in coefiecients]))
         if unsafe:
             prepe = np.vstack(np.array([np.hstack(prep) for prep in yy_pred]))
             return prepe
@@ -51,10 +56,10 @@ class Correle:
             #print(i)
             dane_x = np.hstack(yy_pred[i][:i]+yy_pred[i][i+1:])
             #dane_x = np.hstack((yy_pred[i][:i],yy_pred[i][i+1:]))
-            mega_coeffiecient = self.Correlation(dane_x, wynik=wyniks[i])
+            mega_coeffiecient = Correle.Correlation(dane_x, wynik=wyniks[i])
             dane_xx = [np.hstack(yy_pred[k][:i]+yy_pred[k][i+1:]) for k in range(len(yy_pred))]
             #dane_xx = [np.hstack((np.hstack(yy_pred[k][:i]),np.hstack(yy_pred[k][i+1:]))) for k in range(len(yy_pred))]
-            pred = np.hstack([self.Prediction_ofCorrelation(coeffiecient=mega_coeffiecient, dane_onlyX=danu) for danu in dane_xx])
+            pred = np.hstack([Correle.Prediction_ofCorrelation(coeffiecient=mega_coeffiecient, dane_onlyX=danu) for danu in dane_xx])
             ultra_pred.append(pred)
         ultra_pred = np.vstack(ultra_pred)
 
@@ -62,15 +67,14 @@ class Correle:
 
 
 def test_accuracy(max_groups = 200, period = 100, members = 5, atribu = 3, umie = 2):
-    c = Correle()
     for i in range(10, max_groups):
         anomalia = []
         comp_anomalia = []
         for j in range(period):
             dany = np.random.random((i, members, atribu))
             wynik = np.random.random((i, members, umie))
-            p = c.Correlation_for_all_dane(dany, wynik)
-            comp_p = c.Correlation_for_all_dane(dany, wynik, unsafe=True)
+            p = Correle.Correlation_for_all_dane(dany, wynik)
+            comp_p = Correle.Correlation_for_all_dane(dany, wynik, unsafe=True)
             #c.Show_theThing(np.round((comp_p - p) * 100))
             #input()
             #testt = np.where(p > 1, 1, np.where(p < 0, -1, 0))
@@ -99,7 +103,7 @@ def test_accuracy(max_groups = 200, period = 100, members = 5, atribu = 3, umie 
             comp_anomalia.append(comp_total_anomalie)
         anomalia = np.array(anomalia)
         comp_anomalia = np.array(comp_anomalia)
-        print(f"{i}: {np.mean(anomalia) * 100:.7f}% {np.mean(comp_anomalia) * 100:.7f}%")
+        print(f"{i}: {np.median(anomalia) * 100:.7f}% {np.median(comp_anomalia) * 100:.7f}%")
         #input()
 
 
@@ -111,8 +115,7 @@ input()
 dany = np.random.random((100, 5, 3))
 wynik = np.random.random((100, 5, 2))
 print("DP")
-c = Correle()
-p = c.Correlation_for_all_dane(dany, wynik)
+p = Correle.Correlation_for_all_dane(dany, wynik)
 print()
 #c.Show_theThing(p)
 print()
@@ -120,7 +123,7 @@ w = np.zeros((wynik.shape))
 for g in range(wynik.shape[0]):
     w[g] = wynik[g] - p[g*wynik.shape[1]:g*wynik.shape[1]+wynik.shape[1], g*wynik.shape[2]:g*wynik.shape[2]+wynik.shape[2]]
     #w[g] = w[g] / wynik[g]
-c.Show_theThing(np.hstack(wynik))
+Correle.Show_theThing(np.hstack(wynik))
 print()
 print(p.shape)
 print((np.sum(p > 1) + np.sum(p < 0))/p.shape[0]/p.shape[1])
