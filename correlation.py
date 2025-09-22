@@ -105,25 +105,3 @@ def test_accuracy(max_groups = 200, period = 100, members = 5, atribu = 3, umie 
         comp_anomalia = np.array(comp_anomalia)
         print(f"{i}: {np.median(anomalia) * 100:.7f}% {np.median(comp_anomalia) * 100:.7f}%")
         #input()
-
-
-
-test_accuracy(period=10, members=5, atribu = 3, umie = 2)
-print("deon")
-input()
-#fdadsdsd
-dany = np.random.random((100, 5, 3))
-wynik = np.random.random((100, 5, 2))
-print("DP")
-p = Correle.Correlation_for_all_dane(dany, wynik)
-print()
-#c.Show_theThing(p)
-print()
-w = np.zeros((wynik.shape))
-for g in range(wynik.shape[0]):
-    w[g] = wynik[g] - p[g*wynik.shape[1]:g*wynik.shape[1]+wynik.shape[1], g*wynik.shape[2]:g*wynik.shape[2]+wynik.shape[2]]
-    #w[g] = w[g] / wynik[g]
-Correle.Show_theThing(np.hstack(wynik))
-print()
-print(p.shape)
-print((np.sum(p > 1) + np.sum(p < 0))/p.shape[0]/p.shape[1])
