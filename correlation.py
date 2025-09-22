@@ -32,7 +32,7 @@ class Correle:
         x = np.linalg.solve(A, b)
 
         return x
-    
+
     @staticmethod
     def Prediction_ofCorrelation(coeffiecient, dane_onlyX):
         ones = np.ones((dane_onlyX.shape[0], 1))
@@ -49,19 +49,16 @@ class Correle:
         for dane in dany:
             yy_pred.append(([Correle.Prediction_ofCorrelation(coeffiecient, dane) for coeffiecient in coefiecients]))
         if unsafe:
-            prepe = np.vstack(np.array([np.hstack(prep) for prep in yy_pred]))
+            prepe = np.vstack([np.hstack(prep) for prep in yy_pred])
             return prepe
         ultra_pred = []
         for i, dane in enumerate(dany):
-            #print(i)
             dane_x = np.hstack(yy_pred[i][:i]+yy_pred[i][i+1:])
-            #dane_x = np.hstack((yy_pred[i][:i],yy_pred[i][i+1:]))
             mega_coeffiecient = Correle.Correlation(dane_x, wynik=wyniks[i])
             dane_xx = [np.hstack(yy_pred[k][:i]+yy_pred[k][i+1:]) for k in range(len(yy_pred))]
-            #dane_xx = [np.hstack((np.hstack(yy_pred[k][:i]),np.hstack(yy_pred[k][i+1:]))) for k in range(len(yy_pred))]
-            pred = np.hstack([Correle.Prediction_ofCorrelation(coeffiecient=mega_coeffiecient, dane_onlyX=danu) for danu in dane_xx])
+            pred = np.vstack([Correle.Prediction_ofCorrelation(coeffiecient=mega_coeffiecient, dane_onlyX=danu) for danu in dane_xx])
             ultra_pred.append(pred)
-        ultra_pred = np.vstack(ultra_pred)
+        ultra_pred = np.hstack(ultra_pred)
 
         return ultra_pred
 
