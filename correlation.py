@@ -11,7 +11,7 @@ class Correle:
             print(txt)
     
     @staticmethod
-    def Correlation(dane, wynik=None, number_wyniks = None):
+    def Coefficient(dane, wynik=None, number_wyniks = None):
         #CHECK FOR L2 REGULATION!!!!!!
         if wynik is None:
             total = dane[:]
@@ -34,7 +34,7 @@ class Correle:
         return x
 
     @staticmethod
-    def Prediction_ofCorrelation(coeffiecient, dane_onlyX):
+    def Prediction_ofCoefficient(coeffiecient, dane_onlyX):
         ones = np.ones((dane_onlyX.shape[0], 1))
         dane = np.hstack((ones, dane_onlyX))
         y_pred = dane @ coeffiecient
@@ -42,26 +42,59 @@ class Correle:
         return y_pred
     
     @staticmethod
-    def Correlation_for_all_dane(dany, wyniks, unsafe = False):
-        coefiecients = [Correle.Correlation(dane, wynik) for dane, wynik in zip(dany, wyniks)]
+    def Coefficient_for_all_dane(dany, wyniks, unsafe = False):
+        coefiecients = [Correle.Coefficient(dane, wynik) for dane, wynik in zip(dany, wyniks)]
         
         yy_pred = []
         for dane in dany:
-            yy_pred.append(([Correle.Prediction_ofCorrelation(coeffiecient, dane) for coeffiecient in coefiecients]))
+            yy_pred.append(([Correle.Prediction_ofCoefficient(coeffiecient, dane) for coeffiecient in coefiecients]))
         if unsafe:
             prepe = np.vstack([np.hstack(prep) for prep in yy_pred])
             return prepe
         ultra_pred = []
         for i, dane in enumerate(dany):
             dane_x = np.hstack(yy_pred[i][:i]+yy_pred[i][i+1:])
-            mega_coeffiecient = Correle.Correlation(dane_x, wynik=wyniks[i])
+            mega_coeffiecient = Correle.Coefficient(dane_x, wynik=wyniks[i])
             dane_xx = [np.hstack(yy_pred[k][:i]+yy_pred[k][i+1:]) for k in range(len(yy_pred))]
-            pred = np.vstack([Correle.Prediction_ofCorrelation(coeffiecient=mega_coeffiecient, dane_onlyX=danu) for danu in dane_xx])
+            pred = np.vstack([Correle.Prediction_ofCoefficient(coeffiecient=mega_coeffiecient, dane_onlyX=danu) for danu in dane_xx])
             ultra_pred.append(pred)
         ultra_pred = np.hstack(ultra_pred)
 
         return ultra_pred
+    
+    @staticmethod
+    def Correaltion(matrix):
+        p = [[np.mean((matrix[:, x] - matrix[:, x].mean()) * (matrix[:, y] - matrix[:, y].mean()))/(matrix[:, x].std()*matrix[:, y].std()) for x in range(matrix.shape[1])] for y in range(matrix.shape[1])]
+        return np.array(p)
+    @staticmethod
+    def DENSITY(dany, wyniks):
+        matrix = Correle.Coefficient_for_all_dane(dany, wyniks)
+        corr = Correle.Correaltion(matrix)
+        weight = 1/np.sum(corr**2, axis=0)
+        weight /= weight.sum()
 
+        distance = (matrix[:, None, :] - matrix[None, :, :]) ** 2 @ weight
+        distance = distance ** 0.5
+        Correle.Show_theThing(distance)
+        print(distance.shape)
+
+    @staticmethod
+    def Check_mass_correlation(dany, wyniks):
+        ultra = Correle.Coefficient_for_all_dane(dany, wyniks)
+        uniq = 0
+        i = 0
+        diff = []
+        for wynik in wyniks:
+            ses_diff = (ultra[i:i+wynik.shape[0], uniq:uniq+wynik.shape[1]] - wynik) ** 2
+            diff.append(ses_diff)
+            i += wynik.shape[0]
+            uniq += wynik.shape[1]
+            print(type(ses_diff))
+            Correle.Show_theThing(ses_diff.mean(axis=1, keepdims=True) ** 0.5)
+            #input()
+        error = [float(ses_diff.mean() ** 0.5) for ses_diff in diff]
+        print()
+        print(error)
 
 def test_accuracy(max_groups = 200, period = 100, members = 5, atribu = 3, umie = 2):
     for i in range(10, max_groups):
@@ -70,8 +103,8 @@ def test_accuracy(max_groups = 200, period = 100, members = 5, atribu = 3, umie 
         for j in range(period):
             dany = np.random.random((i, members, atribu))
             wynik = np.random.random((i, members, umie))
-            p = Correle.Correlation_for_all_dane(dany, wynik)
-            comp_p = Correle.Correlation_for_all_dane(dany, wynik, unsafe=True)
+            p = Correle.Coefficient_for_all_dane(dany, wynik)
+            comp_p = Correle.Coefficient_for_all_dane(dany, wynik, unsafe=True)
             #c.Show_theThing(np.round((comp_p - p) * 100))
             #input()
             #testt = np.where(p > 1, 1, np.where(p < 0, -1, 0))
