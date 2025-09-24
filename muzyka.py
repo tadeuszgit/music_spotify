@@ -12,4 +12,4 @@ pred = Corr.Coefficient_for_all_dane(dany=raw[-2:], wyniks=wynik[-2:], unsafe=Fa
 pred = (pred - pred.mean(axis=0))/pred.std(axis=0)
 Corr.Show_theThing(np.round(pred[:, 4::5]*100)/100)
 print(pred.shape)
-Corr.DENSITY(raw[-2:], wynik[-2:])
+Corr.DENSITY(raw[:], wynik[:], 0.5)
