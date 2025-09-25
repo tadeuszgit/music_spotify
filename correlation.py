@@ -67,13 +67,19 @@ class Correle:
         p = [[np.mean((matrix[:, x] - matrix[:, x].mean()) * (matrix[:, y] - matrix[:, y].mean()))/(matrix[:, x].std()*matrix[:, y].std()) for x in range(matrix.shape[1])] for y in range(matrix.shape[1])]
         return np.array(p)
     @staticmethod
-    def DENSITY(dany, wyniks, SIGMA):
+    def ORDER(dany, wyniks, SIGMA):
         matrix = Correle.Coefficient_for_all_dane(dany[:], wyniks[:])
-        #matrix = matrix[-dany[-1].shape[0]:, :]
-        matrix = (matrix - matrix.mean(axis=0))/matrix.std(axis=0)
+        matrix = matrix[-dany[-1].shape[0]:, :]
+        Correle.Show_theThing(matrix[:, -wyniks[-1].shape[1]:])
+        print(matrix[:, -wyniks[-1].shape[1]:].shape)
+        input()
         corr = Correle.Correaltion(matrix)
         weight = 1/np.sum(corr**2, axis=0)
         weight /= weight.sum()
+        print(weight/weight.mean())
+        print(weight.min()/weight.mean(), weight.max()/weight.mean())
+        matrix = (matrix - matrix.mean(axis=0))/matrix.std(axis=0)
+        
         distance = (matrix[:, None, :] - matrix[None, :, :]) ** 2 @ weight
         distance = distance ** 0.5
         gdistance = distance[:, :]
@@ -82,27 +88,26 @@ class Correle:
         winners = []
         while ingame.shape[0] > 0:
             power = np.sum(np.exp(-gdistance ** 2 / SIGMA ** 2), axis=0) / np.mean(np.sum(np.exp(-gdistance ** 2 / SIGMA ** 2), axis=0))
-            power = np.exp(gmatrix[:, -1]) / power
-            idx = np.argmax(power)
+            gpower = np.exp(gmatrix[:, -1]) / power
+            idx = np.argmax(gpower)
             winners.append(ingame[idx])
+            print(winners[-1]+2, np.max(gpower), power[idx], gmatrix[idx, -1])
             ingame = np.delete(ingame, idx)
             gdistance = distance[ingame, :]
             gdistance = gdistance[:, ingame]
             gmatrix = matrix[ingame, :]
             #print(gdistance.shape)
-            #print(winners[-1], np.max(power))
-            print(ingame.shape)
-        print()
-        for win in winners[:50]:
-            print(win)
+            
+            #print(ingame.shape)
         input()
-        density = np.sum(np.exp(-distance ** 2 / SIGMA ** 2), axis=0) / np.mean(np.sum(np.exp(-distance ** 2 / SIGMA ** 2), axis=0))
-        Correle.Show_theThing(np.array([density]).T)
-        print(density.shape)
-        power = np.exp(matrix[:, -5:]) / density[:, None]
-        Correle.Show_theThing(power)
-        Correle.Show_theThing(power.max(axis=0, keepdims=True))
-        return density
+        power = np.sum(np.exp(-distance ** 2 / SIGMA ** 2), axis=0, keepdims=True) / np.mean(np.sum(np.exp(-distance ** 2 / SIGMA ** 2), axis=0, keepdims=True))
+        test_before = np.exp(matrix[:, -1:]) / power
+        Correle.Show_theThing(power.T)
+        input()
+        #Correle.Show_theThing(test_before[winners].T)
+        #for win in winners[:50]:
+        #    print(win)
+        return winners
     @staticmethod
     def Check_mass_correlation(dany, wyniks):
         ultra = Correle.Coefficient_for_all_dane(dany, wyniks)
