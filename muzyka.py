@@ -1,5 +1,6 @@
 from correlation import Correle as Corr
 from data_import import data_extraction
+from spotifyAPI import SpotifyAPI
 import numpy as np
 impo = data_extraction()
 
@@ -12,4 +13,6 @@ pred = Corr.Coefficient_for_all_dane(dany=raw[-2:], wyniks=wynik[-2:], unsafe=Fa
 pred = (pred - pred.mean(axis=0))/pred.std(axis=0)
 Corr.Show_theThing(np.round(pred[:, 4::5]*100)/100)
 print(pred.shape)
-Corr.ORDER(raw[:], wynik[:], 0.5)
+s = SpotifyAPI()
+order = Corr.ORDER(raw[:], wynik[:], 0.5)
+s.create_new_playlists(order, ['Sezon 3 chapter 3'])

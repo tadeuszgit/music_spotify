@@ -82,31 +82,24 @@ class Correle:
         
         distance = (matrix[:, None, :] - matrix[None, :, :]) ** 2 @ weight
         distance = distance ** 0.5
-        gdistance = distance[:, :]
-        gmatrix = matrix[:, :]
-        ingame = np.array(list(range(distance.shape[0])))
         winners = []
-        while ingame.shape[0] > 0:
-            power = np.sum(np.exp(-gdistance ** 2 / SIGMA ** 2), axis=0) / np.mean(np.sum(np.exp(-gdistance ** 2 / SIGMA ** 2), axis=0))
-            gpower = np.exp(gmatrix[:, -1]) / power
-            idx = np.argmax(gpower)
-            winners.append(ingame[idx])
-            print(winners[-1]+2, np.max(gpower), power[idx], gmatrix[idx, -1])
-            ingame = np.delete(ingame, idx)
-            gdistance = distance[ingame, :]
-            gdistance = gdistance[:, ingame]
-            gmatrix = matrix[ingame, :]
-            #print(gdistance.shape)
-            
-            #print(ingame.shape)
-        input()
-        power = np.sum(np.exp(-distance ** 2 / SIGMA ** 2), axis=0, keepdims=True) / np.mean(np.sum(np.exp(-distance ** 2 / SIGMA ** 2), axis=0, keepdims=True))
-        test_before = np.exp(matrix[:, -1:]) / power
-        Correle.Show_theThing(power.T)
-        input()
-        #Correle.Show_theThing(test_before[winners].T)
-        #for win in winners[:50]:
-        #    print(win)
+        uniq = wyniks[-1].shape[1]
+        for i in range(uniq):
+            winner = []
+            gdistance = distance[:, :]
+            gmatrix = matrix[:, :]
+            ingame = np.array(list(range(distance.shape[0])))
+            while ingame.shape[0] > 0:
+                power = np.sum(np.exp(-gdistance ** 2 / SIGMA ** 2), axis=0) / np.mean(np.sum(np.exp(-gdistance ** 2 / SIGMA ** 2), axis=0))
+                gpower = np.exp(gmatrix[:, -uniq+i]) / power
+                idx = np.argmax(gpower)
+                winner.append(ingame[idx])
+                print(winner[-1]+2, np.max(gpower), power[idx], gmatrix[idx, uniq+i])
+                ingame = np.delete(ingame, idx)
+                gdistance = distance[ingame, :]
+                gdistance = gdistance[:, ingame]
+                gmatrix = matrix[ingame, :]
+            winners.append(winner)
         return winners
     @staticmethod
     def Check_mass_correlation(dany, wyniks):
