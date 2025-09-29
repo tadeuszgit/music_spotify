@@ -47,29 +47,55 @@ class Correle:
         
         yy_pred = []
         for dane in dany:
-            yy_pred.append(([Correle.Prediction_ofCoefficient(coeffiecient, dane) for coeffiecient in coefiecients]))
+            yy_pred.append([Correle.Prediction_ofCoefficient(coeffiecient, dane) for coeffiecient in coefiecients])
         if unsafe:
-            prepe = np.vstack([np.hstack(prep) for prep in yy_pred])
+            prepe = np.hstack(coefiecients)
             return prepe
-        ultra_pred = []
+        ultra_coef = []
         for i, dane in enumerate(dany):
-            dane_x = np.hstack(yy_pred[i][:i]+yy_pred[i][i+1:])
+            dane_x = np.hstack((yy_pred[i][:i]+ yy_pred[i][i+1:]))
+            number = sum([len(yy_pred[i][j][-1]) for j in range(len(dany)) if j < i])
+            print(number)
+            print(dane_x.shape)
+            test = []
+            for j in range(len(coefiecients)):
+                if j != i:
+                    test.append(coefiecients[j])
+                else:
+                    test.append(np.zeros(coefiecients[j].shape))
+            test = np.hstack(test)
+            #test = np.hstack(coefiecients[:i]+coefiecients[i+1:])
+            print(test.shape)
             mega_coeffiecient = Correle.Coefficient(dane_x, wynik=wyniks[i])
-            dane_xx = [np.hstack(yy_pred[k][:i]+yy_pred[k][i+1:]) for k in range(len(yy_pred))]
-            pred = np.vstack([Correle.Prediction_ofCoefficient(coeffiecient=mega_coeffiecient, dane_onlyX=danu) for danu in dane_xx])
-            ultra_pred.append(pred)
-        ultra_pred = np.hstack(ultra_pred)
-
-        return ultra_pred
+            test2 = np.vstack([mega_coeffiecient[:number,:], np.zeros((len(yy_pred[i][i][-1]), len(yy_pred[i][i][-1]))), mega_coeffiecient[number:,:]])
+            print(test2.shape)
+            print(mega_coeffiecient.shape)
+            #print(test.shape)
+            ultra_coef.append(Correle.Prediction_ofCoefficient(coeffiecient=test2, dane_onlyX=test))
+            #print(ultra_coef[-1].shape)
+            #dane_xx = [np.hstack(yy_pred[k][:i]+yy_pred[k][i+1:]) for k in range(len(yy_pred))]
+            #pred = np.vstack([Correle.Prediction_ofCoefficient(coeffiecient=mega_coeffiecient, dane_onlyX=danu) for danu in dane_xx])
+            #ultra_pred.append(pred)
+        #ultra_pred = np.hstack(ultra_pred)
+        ultra_coef = np.hstack(ultra_coef)
+        return ultra_coef
+    
+    @staticmethod
+    def Prediction_ofBIGCoefficient(dany, wynik, test, unsafe=False):
+        coef = Correle.Coefficient_for_all_dane(dany=dany, wyniks=wynik, unsafe=unsafe)
+        print(coef.shape)
+        test = np.vstack(test)
+        print(test.shape)
+        pred = Correle.Prediction_ofCoefficient(coeffiecient=coef, dane_onlyX=test)
+        return pred
     
     @staticmethod
     def Correaltion(matrix):
         p = [[np.mean((matrix[:, x] - matrix[:, x].mean()) * (matrix[:, y] - matrix[:, y].mean()))/(matrix[:, x].std()*matrix[:, y].std()) for x in range(matrix.shape[1])] for y in range(matrix.shape[1])]
         return np.array(p)
     @staticmethod
-    def ORDER(dany, wyniks, SIGMA):
-        matrix = Correle.Coefficient_for_all_dane(dany[:], wyniks[:])
-        matrix = matrix[-dany[-1].shape[0]:, :]
+    def ORDER(dany, wyniks, test, SIGMA):
+        matrix = Correle.Prediction_ofBIGCoefficient(dany, wyniks, test, unsafe=False)
         Correle.Show_theThing(matrix[:, -wyniks[-1].shape[1]:])
         print(matrix[:, -wyniks[-1].shape[1]:].shape)
         input()
@@ -83,7 +109,7 @@ class Correle:
         distance = (matrix[:, None, :] - matrix[None, :, :]) ** 2 @ weight
         distance = distance ** 0.5
         winners = []
-        uniq = wyniks[-1].shape[1]
+        uniq = 5
         for i in range(uniq):
             winner = []
             gdistance = distance[:, :]
@@ -94,12 +120,13 @@ class Correle:
                 gpower = np.exp(gmatrix[:, -uniq+i]) / power
                 idx = np.argmax(gpower)
                 winner.append(ingame[idx])
-                print(winner[-1]+2, np.max(gpower), power[idx], gmatrix[idx, uniq+i])
+                #print(winner[-1]+2, np.max(gpower), power[idx], gmatrix[idx, uniq+i])
                 ingame = np.delete(ingame, idx)
                 gdistance = distance[ingame, :]
                 gdistance = gdistance[:, ingame]
                 gmatrix = matrix[ingame, :]
             winners.append(winner)
+            print(len(winner))
         return winners
     @staticmethod
     def Check_mass_correlation(dany, wyniks):
