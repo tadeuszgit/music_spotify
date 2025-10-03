@@ -34,8 +34,11 @@ class Correle:
         return x
 
     @staticmethod
-    def Prediction_ofCoefficient(coeffiecient, dane_onlyX):
+    def Prediction_ofCoefficient(coeffiecient, dane_onlyX, match = False):
         ones = np.ones((dane_onlyX.shape[0], 1))
+        if match:
+            ones = 1 - ones
+            ones[0, 0] = 1
         dane = np.hstack((ones, dane_onlyX))
         y_pred = dane @ coeffiecient
 
@@ -52,11 +55,10 @@ class Correle:
             prepe = np.hstack(coefiecients)
             return prepe
         ultra_coef = []
+        ultra_pred = []
         for i, dane in enumerate(dany):
             dane_x = np.hstack((yy_pred[i][:i]+ yy_pred[i][i+1:]))
-            number = sum([len(yy_pred[i][j][-1]) for j in range(len(dany)) if j < i])
-            print(number)
-            print(dane_x.shape)
+            number = sum([len(yy_pred[i][j][-1]) for j in range(len(dany)) if j < i]) + 1
             test = []
             for j in range(len(coefiecients)):
                 if j != i:
@@ -65,18 +67,25 @@ class Correle:
                     test.append(np.zeros(coefiecients[j].shape))
             test = np.hstack(test)
             #test = np.hstack(coefiecients[:i]+coefiecients[i+1:])
-            print(test.shape)
             mega_coeffiecient = Correle.Coefficient(dane_x, wynik=wyniks[i])
             test2 = np.vstack([mega_coeffiecient[:number,:], np.zeros((len(yy_pred[i][i][-1]), len(yy_pred[i][i][-1]))), mega_coeffiecient[number:,:]])
-            print(test2.shape)
-            print(mega_coeffiecient.shape)
             #print(test.shape)
-            ultra_coef.append(Correle.Prediction_ofCoefficient(coeffiecient=test2, dane_onlyX=test))
+            ultra_coef.append(Correle.Prediction_ofCoefficient(coeffiecient=test2, dane_onlyX=test, match = True))
+            Correle.Show_theThing(ultra_coef[-1])
+            input()
+            Correle.Show_theThing(np.hstack(coefiecients))
             #print(ultra_coef[-1].shape)
-            #dane_xx = [np.hstack(yy_pred[k][:i]+yy_pred[k][i+1:]) for k in range(len(yy_pred))]
-            #pred = np.vstack([Correle.Prediction_ofCoefficient(coeffiecient=mega_coeffiecient, dane_onlyX=danu) for danu in dane_xx])
-            #ultra_pred.append(pred)
-        #ultra_pred = np.hstack(ultra_pred)
+            dane_xx = [np.hstack(yy_pred[k][:i]+yy_pred[k][i+1:]) for k in range(len(yy_pred))]
+            pred = np.vstack([Correle.Prediction_ofCoefficient(coeffiecient=mega_coeffiecient, dane_onlyX=danu) for danu in dane_xx])
+            ultra_pred.append(pred)
+            #Correle.Show_theThing(pred)
+            print(i)
+            #Correle.Show_theThing(Correle.Prediction_ofCoefficient(coeffiecient=ultra_coef[-1], dane_onlyX=dany[-1], match=False))
+            #print(ultra_coef[-1].shape)
+            input()
+        ultra_pred = np.hstack(ultra_pred)
+        
+
         ultra_coef = np.hstack(ultra_coef)
         return ultra_coef
     
