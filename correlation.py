@@ -55,7 +55,7 @@ class Correle:
             prepe = np.hstack(coefiecients)
             return prepe
         ultra_coef = []
-        ultra_pred = []
+        #ultra_pred = []
         for i, dane in enumerate(dany):
             dane_x = np.hstack((yy_pred[i][:i]+ yy_pred[i][i+1:]))
             number = sum([len(yy_pred[i][j][-1]) for j in range(len(dany)) if j < i]) + 1
@@ -71,19 +71,19 @@ class Correle:
             test2 = np.vstack([mega_coeffiecient[:number,:], np.zeros((len(yy_pred[i][i][-1]), len(yy_pred[i][i][-1]))), mega_coeffiecient[number:,:]])
             #print(test.shape)
             ultra_coef.append(Correle.Prediction_ofCoefficient(coeffiecient=test2, dane_onlyX=test, match = True))
-            Correle.Show_theThing(ultra_coef[-1])
-            input()
-            Correle.Show_theThing(np.hstack(coefiecients))
+            #Correle.Show_theThing(ultra_coef[-1])
+            #input()
+            #Correle.Show_theThing(np.hstack(coefiecients))
             #print(ultra_coef[-1].shape)
-            dane_xx = [np.hstack(yy_pred[k][:i]+yy_pred[k][i+1:]) for k in range(len(yy_pred))]
-            pred = np.vstack([Correle.Prediction_ofCoefficient(coeffiecient=mega_coeffiecient, dane_onlyX=danu) for danu in dane_xx])
-            ultra_pred.append(pred)
+            #dane_xx = [np.hstack(yy_pred[k][:i]+yy_pred[k][i+1:]) for k in range(len(yy_pred))]
+            #pred = np.vstack([Correle.Prediction_ofCoefficient(coeffiecient=mega_coeffiecient, dane_onlyX=danu) for danu in dane_xx])
+            #ultra_pred.append(pred)
             #Correle.Show_theThing(pred)
-            print(i)
+            #print(i)
             #Correle.Show_theThing(Correle.Prediction_ofCoefficient(coeffiecient=ultra_coef[-1], dane_onlyX=dany[-1], match=False))
             #print(ultra_coef[-1].shape)
-            input()
-        ultra_pred = np.hstack(ultra_pred)
+            #input()
+        #ultra_pred = np.hstack(ultra_pred)
         
 
         ultra_coef = np.hstack(ultra_coef)
@@ -92,9 +92,9 @@ class Correle:
     @staticmethod
     def Prediction_ofBIGCoefficient(dany, wynik, test, unsafe=False):
         coef = Correle.Coefficient_for_all_dane(dany=dany, wyniks=wynik, unsafe=unsafe)
-        print(coef.shape)
+        #print(coef.shape)
         test = np.vstack(test)
-        print(test.shape)
+        #print(test.shape)
         pred = Correle.Prediction_ofCoefficient(coeffiecient=coef, dane_onlyX=test)
         return pred
     
@@ -103,8 +103,10 @@ class Correle:
         p = [[np.mean((matrix[:, x] - matrix[:, x].mean()) * (matrix[:, y] - matrix[:, y].mean()))/(matrix[:, x].std()*matrix[:, y].std()) for x in range(matrix.shape[1])] for y in range(matrix.shape[1])]
         return np.array(p)
     @staticmethod
-    def ORDER(dany, wyniks, test, SIGMA):
+    def ORDER(dany, wyniks, test, SIGMA, number_songs = 100):
         matrix = Correle.Prediction_ofBIGCoefficient(dany, wyniks, test, unsafe=False)
+        if matrix.shape[0] < number_songs:
+            number_songs = matrix.shape[0]
         Correle.Show_theThing(matrix[:, -wyniks[-1].shape[1]:])
         print(matrix[:, -wyniks[-1].shape[1]:].shape)
         input()
@@ -134,8 +136,11 @@ class Correle:
                 gdistance = distance[ingame, :]
                 gdistance = gdistance[:, ingame]
                 gmatrix = matrix[ingame, :]
-            winners.append(winner)
+            winners.append(winner[:number_songs])
             print(len(winner))
+        power = np.sum(np.exp(-distance ** 2 / SIGMA ** 2), axis=0) / np.mean(np.sum(np.exp(-distance ** 2 / SIGMA ** 2), axis=0))
+        print(winners[-1])
+        Correle.Show_theThing(power[:, None])
         return winners
     @staticmethod
     def Check_mass_correlation(dany, wyniks):

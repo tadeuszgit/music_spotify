@@ -4,7 +4,7 @@ import json
 
 client_id = "381d55411d3447b2bca7de384e49c139"
 client_secrets = 'f563d83cad204d67bd9330326d091703'
-code = 'AQCkqWDzhLLHGa9ySu5aiEoMUnoyQEiLYZkXkU2qgUem5_zy1Ozlu1y81OJUetPP6QTGfKseB7ZEWDQQ6YZbRXSrbIVaTgAEHdAvUiTwCNeLtnDauIiqOEaoaGUo86y5iZNV7Ii6ZjQQVKnfHdZPdnF0bcog6BEBsoCQblGgR0x6xGvlv-GZao41pPMGnnfXQOc4s-Px-HFLbqEqk1UezwibtCBJSfO2GsGx053H99JAqm4-LH4Cjkwuxwyu6jgeVitgZhrRZxoMl8McWO3pOd8h5hi9oTqzAcnlbDSBEZRNS4e11YVwzEkUuUb3Krl_Q4mZ5B7hZhTEf9MZ4el8ccTBavr_L0ooFIp0tw07EV2ZL97yrqIXjmISjuH9iQ'
+code = 'AQAuo_1zmsYRLxOVgHNVMsNqXjLNSf1JQT2dEO55IEl6WFsFBE_HvhMad5Cb-zQPy52Qpc270me9S61FdeQ9duTprBcIwtstlEOd9W8G4dwQDw-A2vdOIYEAN5dJ5-7rOcbjR20oRLmgd6cwszTp-a0XA9mgLvx6_nNfzT1zc3k08UaiIj12JE6qnVJvIMaZu0yruWVY-96MlfiM7l5SxqCeQ8bZisxuVYKaZ6oHUtPLuYRUdpKdaV_YZ23dCR3HsITPoMEY8b3WKFBLqbiKFUg6przm2_f24DQ6410KpnNYpBz_bqMjv0N9GOvcXdeR_F24rgeJt8Sz1iK2c2YQw2TTQs3yrnExiJsSSihPVu708nmdox647f6o1t-m9A'
 
 REDIRECT_URI = 'http://127.0.0.1:8888/callback'
 
@@ -134,7 +134,11 @@ class SpotifyAPI:
         name_new_playlists = name_new_playlists[-len(listofsongs):]
         old_play_id = [self.get_playlist(name) for name in name_playlists]
         old_play = [self.get_tracks_fromplaylist(play_id) for play_id in old_play_id]
+        print(sum([len(old) for old in old_play]))
         songs = [song for period in old_play for song in period]
+        #print(songs)
+        print(len(songs))
+        input()
         songs_theme = []
         for liste in listofsongs:
             print(liste)
