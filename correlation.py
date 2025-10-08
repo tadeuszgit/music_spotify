@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib.pyplot as plt
+#from mpl_toolkits.mplot3d import Axes3D
 
 class Correle:
 
@@ -40,6 +42,7 @@ class Correle:
             ones = 1 - ones
             ones[0, 0] = 1
         dane = np.hstack((ones, dane_onlyX))
+        #print(dane.shape, coeffiecient.shape)
         y_pred = dane @ coeffiecient
 
         return y_pred
@@ -90,18 +93,35 @@ class Correle:
         return ultra_coef
     
     @staticmethod
-    def Prediction_ofBIGCoefficient(dany, wynik, test, unsafe=False):
+    def Prediction_ofBIGCoefficient(dany, wynik, test=None, unsafe=False):
         coef = Correle.Coefficient_for_all_dane(dany=dany, wyniks=wynik, unsafe=unsafe)
+        
         #print(coef.shape)
-        test = np.vstack(test)
+        #test = np.vstack(test)
         #print(test.shape)
-        pred = Correle.Prediction_ofCoefficient(coeffiecient=coef, dane_onlyX=test)
+        if test:
+            pred = Correle.Prediction_ofCoefficient(coeffiecient=coef, dane_onlyX=np.vstack(test))
+        else:
+            pred = [Correle.Prediction_ofCoefficient(coeffiecient=coef, dane_onlyX=dan) for dan in dany]
         return pred
     
     @staticmethod
-    def Correaltion(matrix):
-        p = [[np.mean((matrix[:, x] - matrix[:, x].mean()) * (matrix[:, y] - matrix[:, y].mean()))/(matrix[:, x].std()*matrix[:, y].std()) for x in range(matrix.shape[1])] for y in range(matrix.shape[1])]
+    def Correaltion(matrix, axis=1):
+        if axis == 1:
+            p = [[np.mean((matrix[:, x] - matrix[:, x].mean()) * (matrix[:, y] - matrix[:, y].mean()))/(matrix[:, x].std()*matrix[:, y].std()) for x in range(matrix.shape[1])] for y in range(matrix.shape[1])]
+        else:
+            p = [[np.mean((matrix[x, :] - matrix[x, :].mean()) * (matrix[y, :] - matrix[y, :].mean()))/(matrix[x, :].std()*matrix[y, :].std()) for x in range(matrix.shape[0])] for y in range(matrix.shape[0])]
         return np.array(p)
+    @staticmethod
+    def distance_matrix(dany=None, wyniks=None, matrix = None, unsafe=False):
+        if matrix is None:
+            matrix = Correle.Prediction_ofBIGCoefficient(dany=dany, wynik=wyniks, test=dany, unsafe=unsafe)
+        corr = Correle.Correaltion(matrix=matrix)
+        weight = 1/np.sum(corr**2, axis=0)
+        weight /= weight.sum()
+        distance = (matrix[:, None, :] - matrix[None, :, :]) ** 2 @ weight
+        distance = distance ** 0.5
+        return distance
     @staticmethod
     def ORDER(dany, wyniks, test, SIGMA, number_songs = 100):
         matrix = Correle.Prediction_ofBIGCoefficient(dany, wyniks, test, unsafe=False)
@@ -110,18 +130,32 @@ class Correle:
         Correle.Show_theThing(matrix[:, -wyniks[-1].shape[1]:])
         print(matrix[:, -wyniks[-1].shape[1]:].shape)
         input()
-        corr = Correle.Correaltion(matrix)
-        weight = 1/np.sum(corr**2, axis=0)
-        weight /= weight.sum()
-        print(weight/weight.mean())
-        print(weight.min()/weight.mean(), weight.max()/weight.mean())
+        #corr = Correle.Correaltion(matrix)
+        #weight = 1/np.sum(corr**2, axis=0)
+        #weight /= weight.sum()
+        #print(weight/weight.mean())
+        #print(weight.min()/weight.mean(), weight.max()/weight.mean())
         matrix = (matrix - matrix.mean(axis=0))/matrix.std(axis=0)
         
-        distance = (matrix[:, None, :] - matrix[None, :, :]) ** 2 @ weight
-        distance = distance ** 0.5
+        #distance = (matrix[:, None, :] - matrix[None, :, :]) ** 2 @ weight
+        #distance = distance ** 0.5
+        distance = Correle.distance_matrix(matrix=matrix)
         winners = []
         uniq = 5
+        #power = np.sum(np.exp(-distance ** 2 / SIGMA ** 2), axis=0) / np.mean(np.sum(np.exp(-distance ** 2 / SIGMA ** 2), axis=0))
+        power = np.exp(-distance**2/SIGMA**2)
         for i in range(uniq):
+            gmatrix = matrix[:, -uniq+i]
+            gpower = power * gmatrix[:, None]
+            winner = [np.argmax(gmatrix)]
+            while len(winner) < number_songs:
+                luck = gmatrix / power[winner, :].mean(axis=0)
+                idx = np.argmax(luck)
+                winner.append(idx)
+            winners.append(winner)
+            print(winner)
+        input()
+        """for i in range(uniq):
             winner = []
             gdistance = distance[:, :]
             gmatrix = matrix[:, :]
@@ -137,11 +171,62 @@ class Correle:
                 gdistance = gdistance[:, ingame]
                 gmatrix = matrix[ingame, :]
             winners.append(winner[:number_songs])
-            print(len(winner))
+            print(len(winner))"""
         power = np.sum(np.exp(-distance ** 2 / SIGMA ** 2), axis=0) / np.mean(np.sum(np.exp(-distance ** 2 / SIGMA ** 2), axis=0))
         print(winners[-1])
         Correle.Show_theThing(power[:, None])
         return winners
+    @staticmethod
+    def Correlation_betweenSession(dany, wyniks):
+        matrix = Correle.Prediction_ofBIGCoefficient(dany=dany, wynik=wyniks)
+        [print(matri.shape) for matri in matrix]
+        matrix = np.array([matri.mean(axis=0) for matri in matrix])
+        matrix = (matrix - matrix.mean(axis=0)) / matrix.std(axis=0)
+        dmatrix = Correle.distance_matrix(matrix=matrix)
+        Correle.Show_theThing(dmatrix)
+        print(dmatrix.shape)
+        input()
+        Correle.Show_theThing(matrix[:, -5:])
+        print(matrix.shape)
+        input()
+        matrix = Correle.Correaltion(matrix=matrix, axis=0)
+        Correle.Show_theThing(matrix)
+        print(matrix.shape)
+    @staticmethod
+    def lowerdimension(dany = None, wyniks = None, distance = None):
+        matrix = Correle.Prediction_ofBIGCoefficient(dany=dany, wynik=wyniks)
+        matrix = np.array([matri.mean(axis=0) for matri in matrix])
+        matrix = (matrix - matrix.mean(axis=0)) / matrix.std(axis=0)
+        if distance is None:
+            distance = Correle.distance_matrix(matrix=matrix)
+            distance = Correle.distance_matrix(dany=dany, wyniks=wyniks)
+        n = distance.shape[0]
+        J = np.eye(n) - np.ones((n,n)) / n
+        D2 = distance ** 2
+        B = -0.5 * J @ D2 @ J
+        values, vectors = np.linalg.eig(B)
+
+        idx = np.argsort(values)[::-1]
+        values = values[idx]
+        vectors = vectors[:, idx]
+        pos = (np.isreal(values)) & (values > 0)
+        values = values[pos].real
+        vectors = vectors[:, pos].real
+
+        window = 200
+
+        x = vectors @ np.diag(np.sqrt(values))
+        x = np.array([np.mean(x[i:i+window],axis=0) for i in range(x.shape[0] - window)])
+        
+        cmap = plt.get_cmap('plasma')
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        for i in range(x.shape[0] - 1):
+            ax.plot(x[i:i+2, 0], x[i:i+2, 1], x[i:i+2, 2], color=cmap(i/(x.shape[0] - 2)))
+
+        #plt.plot(x[:, 0], x[:, 1], cmap='plasma', c = np.linspace(0,1, x.shape[0]))
+        plt.show()
+        print(values)
     @staticmethod
     def Check_mass_correlation(dany, wyniks):
         ultra = Correle.Coefficient_for_all_dane(dany, wyniks)
