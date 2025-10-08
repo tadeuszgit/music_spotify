@@ -93,7 +93,7 @@ class Correle:
         norm, coef = Correle.Coefficient_for_all_dane(dany=dany,wyniks=wynik, norm=True)
         if test is None:
             test = dany
-        hidden = [Correle.Prediction_ofCoefficient(dane_onlyX=dan, coeffiecient=norm, norm=True) for dan in dany]
+        hidden = [Correle.Prediction_ofCoefficient(dane_onlyX=dan, coeffiecient=norm, norm=True) for dan in test]
         result = [Correle.Prediction_ofCoefficient(dane_onlyX=dan, coeffiecient=coef) for dan in hidden]
         return result
     @staticmethod
@@ -128,11 +128,13 @@ class Correle:
         return distance
     @staticmethod
     def ORDER(dany, wyniks, test, SIGMA, number_songs = 100):
-        matrix = Correle.Prediction_ofBIGCoefficient(dany, wyniks, test, unsafe=False)
+        matrix = Correle.Prediction_ofNorm(dany, wyniks, test)
+        matrix = np.vstack(matrix)
         if matrix.shape[0] < number_songs:
             number_songs = matrix.shape[0]
         Correle.Show_theThing(matrix[:, -wyniks[-1].shape[1]:])
         print(matrix[:, -wyniks[-1].shape[1]:].shape)
+        #print(dany.shape)
         input()
         #corr = Correle.Correaltion(matrix)
         #weight = 1/np.sum(corr**2, axis=0)
@@ -182,7 +184,7 @@ class Correle:
         return winners
     @staticmethod
     def Correlation_betweenSession(dany, wyniks):
-        matrix = Correle.Prediction_ofBIGCoefficient(dany=dany, wynik=wyniks)
+        matrix = Correle.Prediction_ofNorm(dany=dany, wynik=wyniks)
         [print(matri.shape) for matri in matrix]
         matrix = np.array([matri.mean(axis=0) for matri in matrix])
         matrix = (matrix - matrix.mean(axis=0)) / matrix.std(axis=0)
@@ -190,7 +192,7 @@ class Correle:
         Correle.Show_theThing(dmatrix)
         print(dmatrix.shape)
         input()
-        Correle.Show_theThing(matrix[:, -5:])
+        Correle.Show_theThing(matrix[:, 4::5])
         print(matrix.shape)
         input()
         matrix = Correle.Correaltion(matrix=matrix, axis=0)
@@ -198,12 +200,12 @@ class Correle:
         print(matrix.shape)
     @staticmethod
     def lowerdimension(dany = None, wyniks = None, distance = None):
-        matrix = Correle.Prediction_ofBIGCoefficient(dany=dany, wynik=wyniks)
+        matrix = Correle.Prediction_ofNorm(dany=dany, wynik=wyniks)
         matrix = np.array([matri.mean(axis=0) for matri in matrix])
         matrix = (matrix - matrix.mean(axis=0)) / matrix.std(axis=0)
         if distance is None:
             distance = Correle.distance_matrix(matrix=matrix)
-            distance = Correle.distance_matrix(dany=dany, wyniks=wyniks)
+            #distance = Correle.distance_matrix(dany=dany, wyniks=wyniks)
         n = distance.shape[0]
         J = np.eye(n) - np.ones((n,n)) / n
         D2 = distance ** 2
@@ -220,7 +222,7 @@ class Correle:
         window = 200
 
         x = vectors @ np.diag(np.sqrt(values))
-        x = np.array([np.mean(x[i:i+window],axis=0) for i in range(x.shape[0] - window)])
+        #x = np.array([np.mean(x[i:i+window],axis=0) for i in range(x.shape[0] - window)])
         
         cmap = plt.get_cmap('plasma')
         fig = plt.figure()
