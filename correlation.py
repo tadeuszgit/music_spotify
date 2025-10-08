@@ -13,7 +13,7 @@ class Correle:
             print(txt)
     
     @staticmethod
-    def Coefficient(dane, wynik=None, number_wyniks = None):
+    def Coefficient(dane, wynik=None, number_wyniks = None, norm = False):
         #CHECK FOR L2 REGULATION!!!!!!
         if wynik is None:
             total = dane[:]
@@ -32,11 +32,14 @@ class Correle:
         A = mat[:,:m+1]
         b = mat[:, m+1:]
         x = np.linalg.solve(A, b)
+        if norm:
+            x[0, :] -= total[:, -n:].mean(axis=0)
+            x[1:, :] /= total[:, -n:].std(axis=0)
 
         return x
 
     @staticmethod
-    def Prediction_ofCoefficient(coeffiecient, dane_onlyX, match = False):
+    def Prediction_ofCoefficient(coeffiecient, dane_onlyX, match = False, norm=False):
         ones = np.ones((dane_onlyX.shape[0], 1))
         if match:
             ones = 1 - ones
@@ -44,20 +47,24 @@ class Correle:
         dane = np.hstack((ones, dane_onlyX))
         #print(dane.shape, coeffiecient.shape)
         y_pred = dane @ coeffiecient
-
+        if norm:
+            y_pred = 1 / (1 + np.exp(-y_pred))
         return y_pred
     
     @staticmethod
-    def Coefficient_for_all_dane(dany, wyniks, unsafe = False):
-        coefiecients = [Correle.Coefficient(dane, wynik) for dane, wynik in zip(dany, wyniks)]
+    def Coefficient_for_all_dane(dany, wyniks, unsafe = False, norm = False):
+        if unsafe:
+            norm = False
+        coefiecients = [Correle.Coefficient(dane, wynik, norm=norm) for dane, wynik in zip(dany, wyniks)]
         
         yy_pred = []
         for dane in dany:
-            yy_pred.append([Correle.Prediction_ofCoefficient(coeffiecient, dane) for coeffiecient in coefiecients])
+            yy_pred.append([Correle.Prediction_ofCoefficient(coeffiecient, dane, norm=norm) for coeffiecient in coefiecients])
         if unsafe:
             prepe = np.hstack(coefiecients)
             return prepe
         ultra_coef = []
+        norm_coef = np.hstack(coefiecients)
         #ultra_pred = []
         for i, dane in enumerate(dany):
             dane_x = np.hstack((yy_pred[i][:i]+ yy_pred[i][i+1:]))
@@ -69,29 +76,26 @@ class Correle:
                 else:
                     test.append(np.zeros(coefiecients[j].shape))
             test = np.hstack(test)
-            #test = np.hstack(coefiecients[:i]+coefiecients[i+1:])
+            if norm:
+                dane_x = np.hstack(yy_pred[i])
             mega_coeffiecient = Correle.Coefficient(dane_x, wynik=wyniks[i])
-            test2 = np.vstack([mega_coeffiecient[:number,:], np.zeros((len(yy_pred[i][i][-1]), len(yy_pred[i][i][-1]))), mega_coeffiecient[number:,:]])
-            #print(test.shape)
-            ultra_coef.append(Correle.Prediction_ofCoefficient(coeffiecient=test2, dane_onlyX=test, match = True))
-            #Correle.Show_theThing(ultra_coef[-1])
-            #input()
-            #Correle.Show_theThing(np.hstack(coefiecients))
-            #print(ultra_coef[-1].shape)
-            #dane_xx = [np.hstack(yy_pred[k][:i]+yy_pred[k][i+1:]) for k in range(len(yy_pred))]
-            #pred = np.vstack([Correle.Prediction_ofCoefficient(coeffiecient=mega_coeffiecient, dane_onlyX=danu) for danu in dane_xx])
-            #ultra_pred.append(pred)
-            #Correle.Show_theThing(pred)
-            #print(i)
-            #Correle.Show_theThing(Correle.Prediction_ofCoefficient(coeffiecient=ultra_coef[-1], dane_onlyX=dany[-1], match=False))
-            #print(ultra_coef[-1].shape)
-            #input()
-        #ultra_pred = np.hstack(ultra_pred)
-        
-
+            if norm:
+                ultra_coef.append(mega_coeffiecient)
+            else:
+                test2 = np.vstack([mega_coeffiecient[:number,:], np.zeros((len(yy_pred[i][i][-1]), len(yy_pred[i][i][-1]))), mega_coeffiecient[number:,:]])
+                ultra_coef.append(Correle.Prediction_ofCoefficient(coeffiecient=test2, dane_onlyX=test, match = True))
         ultra_coef = np.hstack(ultra_coef)
+        if norm:
+            return norm_coef, ultra_coef
         return ultra_coef
-    
+    @staticmethod
+    def Prediction_ofNorm(dany, wynik, test=None):
+        norm, coef = Correle.Coefficient_for_all_dane(dany=dany,wyniks=wynik, norm=True)
+        if test is None:
+            test = dany
+        hidden = [Correle.Prediction_ofCoefficient(dane_onlyX=dan, coeffiecient=norm, norm=True) for dan in dany]
+        result = [Correle.Prediction_ofCoefficient(dane_onlyX=dan, coeffiecient=coef) for dan in hidden]
+        return result
     @staticmethod
     def Prediction_ofBIGCoefficient(dany, wynik, test=None, unsafe=False):
         coef = Correle.Coefficient_for_all_dane(dany=dany, wyniks=wynik, unsafe=unsafe)
