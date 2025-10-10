@@ -50,9 +50,25 @@ class Correle:
         if norm:
             y_pred = 1 / (1 + np.exp(-y_pred))
         return y_pred
-    
     @staticmethod
-    def Coefficient_for_all_dane(dany, wyniks, unsafe = False, norm = False):
+    def Redundance(matrix, norm=True):
+        corr = Correle.Correaltion(matrix=matrix)
+        weight = 1/np.sum(corr ** 2, axis=0)
+        if norm:
+            weight /= weight.sum()
+        return weight
+    @staticmethod
+    def ListRedundance(matrix):
+        cand = list(range(matrix.shape[1]))
+        lost = []
+        while len(cand) > 0:
+            scores = Correle.Redundance(matrix=matrix[:, cand])
+            lost.append(cand.pop(np.argmin(scores)))
+            #print(lost[-1])
+        #print(Correle.Redundance(matrix=matrix[:, lost], norm=False))
+        return lost
+    @staticmethod
+    def Coefficient_for_all_dane(dany, wyniks, unsafe = False, norm = False, save=10):
         if unsafe:
             norm = False
         coefiecients = [Correle.Coefficient(dane, wynik, norm=norm) for dane, wynik in zip(dany, wyniks)]
@@ -60,11 +76,17 @@ class Correle:
         yy_pred = []
         for dane in dany:
             yy_pred.append([Correle.Prediction_ofCoefficient(coeffiecient, dane, norm=norm) for coeffiecient in coefiecients])
+            #print(np.hstack(yy_pred[-1]).shape)
+        
         if unsafe:
             prepe = np.hstack(coefiecients)
             return prepe
         ultra_coef = []
         norm_coef = np.hstack(coefiecients)
+        if norm:
+            optimal = Correle.ListRedundance(np.vstack([np.hstack(pred) for pred in yy_pred]))
+            norm_coef = norm_coef[:, optimal[-save:]]
+        #print(norm_coef.shape)
         #ultra_pred = []
         for i, dane in enumerate(dany):
             dane_x = np.hstack((yy_pred[i][:i]+ yy_pred[i][i+1:]))
@@ -77,8 +99,12 @@ class Correle:
                     test.append(np.zeros(coefiecients[j].shape))
             test = np.hstack(test)
             if norm:
-                dane_x = np.hstack(yy_pred[i])
+                dane_x = np.hstack(yy_pred[i])[:, optimal[-save:]]
+                #print("HERE")
+                #print(dane_x.shape)
+                #input()
             mega_coeffiecient = Correle.Coefficient(dane_x, wynik=wyniks[i])
+            #print(mega_coeffiecient.shape)
             if norm:
                 ultra_coef.append(mega_coeffiecient)
             else:
@@ -89,10 +115,10 @@ class Correle:
             return norm_coef, ultra_coef
         return ultra_coef
     @staticmethod
-    def Prediction_ofNorm(dany, wynik, test=None):
-        norm, coef = Correle.Coefficient_for_all_dane(dany=dany,wyniks=wynik, norm=True)
+    def Prediction_ofNorm(dany, wynik, test=None, save=9):
         if test is None:
-            test = dany
+                test = dany
+        norm, coef = Correle.Coefficient_for_all_dane(dany=dany,wyniks=wynik, norm=True, save=save)
         hidden = [Correle.Prediction_ofCoefficient(dane_onlyX=dan, coeffiecient=norm, norm=True) for dan in test]
         result = [Correle.Prediction_ofCoefficient(dane_onlyX=dan, coeffiecient=coef) for dan in hidden]
         return result
@@ -130,8 +156,8 @@ class Correle:
     def ORDER(dany, wyniks, test, SIGMA, number_songs = 100):
         matrix = Correle.Prediction_ofNorm(dany, wyniks, test)
         matrix = np.vstack(matrix)
-        if matrix.shape[0] < number_songs:
-            number_songs = matrix.shape[0]
+        #if matrix.shape[0] < number_songs:
+        #    number_songs = matrix.shape[0]
         Correle.Show_theThing(matrix[:, -wyniks[-1].shape[1]:])
         print(matrix[:, -wyniks[-1].shape[1]:].shape)
         #print(dany.shape)
