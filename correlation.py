@@ -34,7 +34,7 @@ class Correle:
         x = np.linalg.solve(A, b)
         if norm:
             x[0, :] -= total[:, -n:].mean(axis=0)
-            x[1:, :] /= total[:, -n:].std(axis=0)
+            x[:, :] /= total[:, -n:].std(axis=0)
 
         return x
 
@@ -64,7 +64,7 @@ class Correle:
         while len(cand) > 0:
             scores = Correle.Redundance(matrix=matrix[:, cand])
             lost.append(cand.pop(np.argmin(scores)))
-            #print(lost[-1])
+            print(lost[-1])
         #print(Correle.Redundance(matrix=matrix[:, lost], norm=False))
         return lost
     @staticmethod
@@ -84,7 +84,11 @@ class Correle:
         ultra_coef = []
         norm_coef = np.hstack(coefiecients)
         if norm:
-            optimal = Correle.ListRedundance(np.vstack([np.hstack(pred) for pred in yy_pred]))
+            #optimal = Correle.ListRedundance(np.vstack([np.hstack(pred) for pred in yy_pred]))
+            #print(optimal)
+            #print("USE IT!!!")
+            optimal = [43, 8, 63, 5, 68, 6, 42, 79, 61, 78, 30, 53, 39, 56, 40, 7, 22, 57, 19, 45, 77, 20, 38, 13, 0, 54, 65, 17, 71, 36, 58, 52, 83, 46, 25, 81, 59, 21, 74, 67, 15, 47, 12, 11, 34, 31, 3, 76, 72, 29, 51, 50, 23, 27, 75, 55, 9, 37, 64, 48, 80, 26, 69, 41, 16, 33, 14, 73, 4, 44, 24, 84, 35, 18, 28, 2, 66, 60, 1, 70, 82, 62, 32, 10, 49]
+            optimal = list(range(85))
             norm_coef = norm_coef[:, optimal[-save:]]
         #print(norm_coef.shape)
         #ultra_pred = []
@@ -119,6 +123,9 @@ class Correle:
         if test is None:
                 test = dany
         norm, coef = Correle.Coefficient_for_all_dane(dany=dany,wyniks=wynik, norm=True, save=save)
+        Correle.Show_theThing(coef[:, -5:])
+        print("THE MYSTERY")
+        input()
         hidden = [Correle.Prediction_ofCoefficient(dane_onlyX=dan, coeffiecient=norm, norm=True) for dan in test]
         result = [Correle.Prediction_ofCoefficient(dane_onlyX=dan, coeffiecient=coef) for dan in hidden]
         return result
@@ -137,6 +144,10 @@ class Correle:
     
     @staticmethod
     def Correaltion(matrix, axis=1):
+        #Correle.Show_theThing(matrix.std(axis=0, keepdims=True))
+        #print("here")
+        #Correle.Show_theThing(matrix[:, -10:-5])
+        #input()
         if axis == 1:
             p = [[np.mean((matrix[:, x] - matrix[:, x].mean()) * (matrix[:, y] - matrix[:, y].mean()))/(matrix[:, x].std()*matrix[:, y].std()) for x in range(matrix.shape[1])] for y in range(matrix.shape[1])]
         else:
@@ -158,17 +169,18 @@ class Correle:
         matrix = np.vstack(matrix)
         #if matrix.shape[0] < number_songs:
         #    number_songs = matrix.shape[0]
-        Correle.Show_theThing(matrix[:, -wyniks[-1].shape[1]:])
-        print(matrix[:, -wyniks[-1].shape[1]:].shape)
+        #Correle.Show_theThing(matrix[:, -wyniks[-1].shape[1]:])
+        #print(matrix[:, -wyniks[-1].shape[1]:].shape)
         #print(dany.shape)
-        input()
+        #input()
         #corr = Correle.Correaltion(matrix)
         #weight = 1/np.sum(corr**2, axis=0)
         #weight /= weight.sum()
         #print(weight/weight.mean())
         #print(weight.min()/weight.mean(), weight.max()/weight.mean())
         matrix = (matrix - matrix.mean(axis=0))/matrix.std(axis=0)
-        
+        matrix = 1 / (1 + np.exp(-matrix))
+        """TRY TO FIND THE SIGMA male"""
         #distance = (matrix[:, None, :] - matrix[None, :, :]) ** 2 @ weight
         #distance = distance ** 0.5
         distance = Correle.distance_matrix(matrix=matrix)
@@ -181,12 +193,13 @@ class Correle:
             gpower = power * gmatrix[:, None]
             winner = [np.argmax(gmatrix)]
             while len(winner) < number_songs:
-                luck = gmatrix / power[winner, :].mean(axis=0)
+                luck = gmatrix / gpower[winner, :].mean(axis=0)
                 idx = np.argmax(luck)
                 winner.append(idx)
             winners.append(winner)
-            print(winner)
-        input()
+            #winners.append(np.argsort(1-gmatrix))
+            #print(winner)
+        #input()
         """for i in range(uniq):
             winner = []
             gdistance = distance[:, :]
@@ -205,12 +218,13 @@ class Correle:
             winners.append(winner[:number_songs])
             print(len(winner))"""
         power = np.sum(np.exp(-distance ** 2 / SIGMA ** 2), axis=0) / np.mean(np.sum(np.exp(-distance ** 2 / SIGMA ** 2), axis=0))
-        print(winners[-1])
-        Correle.Show_theThing(power[:, None])
+        #print(winners[-1])
+        #Correle.Show_theThing(power[:, None])
+        print(SIGMA, np.sum(power**2)/matrix.shape[0]-1)
         return winners
     @staticmethod
     def Correlation_betweenSession(dany, wyniks):
-        matrix = Correle.Prediction_ofNorm(dany=dany, wynik=wyniks)
+        matrix = Correle.Prediction_ofNorm(dany=dany, wynik=wyniks, save=10)
         [print(matri.shape) for matri in matrix]
         matrix = np.array([matri.mean(axis=0) for matri in matrix])
         matrix = (matrix - matrix.mean(axis=0)) / matrix.std(axis=0)
@@ -226,9 +240,10 @@ class Correle:
         print(matrix.shape)
     @staticmethod
     def lowerdimension(dany = None, wyniks = None, distance = None):
-        matrix = Correle.Prediction_ofNorm(dany=dany, wynik=wyniks)
+        matrix = Correle.Prediction_ofNorm(dany=dany, wynik=wyniks, save=10)
         matrix = np.array([matri.mean(axis=0) for matri in matrix])
         matrix = (matrix - matrix.mean(axis=0)) / matrix.std(axis=0)
+        matrix = 1 / (1 + np.exp(-matrix))
         if distance is None:
             distance = Correle.distance_matrix(matrix=matrix)
             #distance = Correle.distance_matrix(dany=dany, wyniks=wyniks)
