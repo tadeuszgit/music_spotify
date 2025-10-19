@@ -4,7 +4,7 @@ import json
 
 client_id = "381d55411d3447b2bca7de384e49c139"
 client_secrets = 'f563d83cad204d67bd9330326d091703'
-code = 'AQDamWH02hmsC9MeTeVks7fE6XBauuNhNqphh9YwPiSa2P_iXEEJGZ8LqXIpOTqaEsZFLPGYhsjFqTnFlctBHrVHG7nmVR2IEuMXGCyDP1J7SAvfA4Scbsd5XZYDqP1UnCscqGpKN-L4Dp_AJ_A94NQcC5zaoWqBU9mdl76E_tAhNqRzUnXCtNxoD5zl-CgNfHyhseRO42taF3Wg34xCYLMF8ebrm-YUkudnRswdv0FrhmYdiC6u3_rzt7ZvLUwWkvsi5fHIrHz49Nedfo_aACN3-iNukWZ7QambSphVzTdK5X25oNVpKswYVSSjYSvlb08nrO0hmV1Yhyz-vlUEfNE6Rp-OkPGDprxueCO1ZeaQGvSlQ3DY_duBpUavWw'
+code = 'AQAsMbxc5RQrcuHE_veYcPYKclyqxztdLo1sW8gursbNcZICBfCfzOYxofX4V60Y4NNUbRxcha_lgXWY3POfYsN6RL_qYD1azSc-PRoxlGMPb7Yp8gWCLahOvlmSR1_R3UayZFxHv_uinyRR43-WckItAMh7CbMDhcsMp-RNxC9nNwnl3dECQQhzFV8VHQAX3vHIH-8xYQKyIszbMlYgWl9eoyuLnjfDyM5fcWfKxbNBCQZFCjoPSoshcovrXazsDVspgBBEYqkU198EjHfINnV5RNaL4LkRyE_lnmf07xyXLLhZws3jwr1d2-e5OoPU1yr_Qo1SrUPKqJ56A3bFHeiDNCOr4_qxKsWw4YtqvPm8Atp1PP0zr6rUYWjHnA'
 
 REDIRECT_URI = 'http://127.0.0.1:8888/callback'
 
@@ -116,19 +116,40 @@ class SpotifyAPI:
         url = f'https://api.spotify.com/v1/playlists/{id_play}/tracks'
         headers = self.get_auth_header(self.token)
         headers['Content-Type'] = 'application/json'
+        while len(songs) > 100:
+            song = songs[:100]
+            songs = songs[100:]
+            body = {
+                'uris': [son['uri'] for son in song]
+            }
+            result = requests.post(url, headers=headers, json=body)
+            data = json.loads(result.content)
+            print(data)
+            while data.get('error'):
+                print("HI")
+                result = requests.post(url, headers=headers, json=body)
+                data = json.loads(result.content)
+                print(data)
         if 'uri' in songs:
             body = {
                 'uris': [songs['uri']]
             }
-            print(songs)
+            #print(songs)
         else:
-            print(songs)
+            #print(songs)
             body = {
                 'uris': [song['uri'] for song in songs]
             }
         result = requests.post(url, headers=headers, json=body)
         data = json.loads(result.content)
         print(data)
+        while data.get('error'):
+                print("HI")
+                result = requests.post(url, headers=headers, json=body)
+                data = json.loads(result.content)
+                print(data)
+        print("FUCK YEAH")
+        input()
 
     def create_new_playlists(self, listofsongs, name_playlists, name_new_playlists = ['gym', 'self', 'better', 'commu', 'like']):
         name_new_playlists = name_new_playlists[-len(listofsongs):]

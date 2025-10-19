@@ -13,7 +13,12 @@ class Correle:
             print(txt)
     
     @staticmethod
-    def Coefficient(dane, wynik=None, number_wyniks = None, norm = False):
+    #18.6
+    def Coefficient(dane, wynik=None, number_wyniks = None, norm = False, LAMBDA = 1):
+
+        if LAMBDA is None:
+            LAMBDA = 10
+            print(":P:")
         #CHECK FOR L2 REGULATION!!!!!!
         if wynik is None:
             total = dane[:]
@@ -30,12 +35,12 @@ class Correle:
 
         mat = matrix_one[:, :m+1].T @ matrix_one
         A = mat[:,:m+1]
+        A += LAMBDA * np.eye(A.shape[0]) * matrix_one[:, :m+1].std(axis=0, keepdims=True) ** 2
         b = mat[:, m+1:]
         x = np.linalg.solve(A, b)
         if norm:
             x[0, :] -= total[:, -n:].mean(axis=0)
             x[:, :] /= total[:, -n:].std(axis=0)
-
         return x
 
     @staticmethod
@@ -68,19 +73,19 @@ class Correle:
         #print(Correle.Redundance(matrix=matrix[:, lost], norm=False))
         return lost
     @staticmethod
-    def Coefficient_for_all_dane(dany, wyniks, unsafe = False, norm = False, save=10):
+    def Coefficient_for_all_dane(dany, wyniks, unsafe = False, norm = False, save=10, LAMBDA=None):
+        #if unsafe:
+        #    norm = False
+        coefiecients = [Correle.Coefficient(dane, wynik, norm=norm, LAMBDA=LAMBDA) for dane, wynik in zip(dany, wyniks)]
         if unsafe:
-            norm = False
-        coefiecients = [Correle.Coefficient(dane, wynik, norm=norm) for dane, wynik in zip(dany, wyniks)]
-        
+            prepe = np.hstack(coefiecients)
+            return prepe
         yy_pred = []
         for dane in dany:
             yy_pred.append([Correle.Prediction_ofCoefficient(coeffiecient, dane, norm=norm) for coeffiecient in coefiecients])
             #print(np.hstack(yy_pred[-1]).shape)
         
-        if unsafe:
-            prepe = np.hstack(coefiecients)
-            return prepe
+        
         ultra_coef = []
         norm_coef = np.hstack(coefiecients)
         if norm:
@@ -88,7 +93,8 @@ class Correle:
             #print(optimal)
             #print("USE IT!!!")
             optimal = [43, 8, 63, 5, 68, 6, 42, 79, 61, 78, 30, 53, 39, 56, 40, 7, 22, 57, 19, 45, 77, 20, 38, 13, 0, 54, 65, 17, 71, 36, 58, 52, 83, 46, 25, 81, 59, 21, 74, 67, 15, 47, 12, 11, 34, 31, 3, 76, 72, 29, 51, 50, 23, 27, 75, 55, 9, 37, 64, 48, 80, 26, 69, 41, 16, 33, 14, 73, 4, 44, 24, 84, 35, 18, 28, 2, 66, 60, 1, 70, 82, 62, 32, 10, 49]
-            optimal = list(range(85))
+            #optimal = list(range(85))
+            #print(len(optimal))
             norm_coef = norm_coef[:, optimal[-save:]]
         #print(norm_coef.shape)
         #ultra_pred = []
@@ -107,7 +113,7 @@ class Correle:
                 #print("HERE")
                 #print(dane_x.shape)
                 #input()
-            mega_coeffiecient = Correle.Coefficient(dane_x, wynik=wyniks[i])
+            mega_coeffiecient = Correle.Coefficient(dane_x, wynik=wyniks[i], LAMBDA=LAMBDA)
             #print(mega_coeffiecient.shape)
             if norm:
                 ultra_coef.append(mega_coeffiecient)
@@ -119,13 +125,13 @@ class Correle:
             return norm_coef, ultra_coef
         return ultra_coef
     @staticmethod
-    def Prediction_ofNorm(dany, wynik, test=None, save=9):
+    def Prediction_ofNorm(dany, wynik, test=None, save=85 , LAMBDA=None):
         if test is None:
                 test = dany
-        norm, coef = Correle.Coefficient_for_all_dane(dany=dany,wyniks=wynik, norm=True, save=save)
-        Correle.Show_theThing(coef[:, -5:])
-        print("THE MYSTERY")
-        input()
+        norm, coef = Correle.Coefficient_for_all_dane(dany=dany,wyniks=wynik, norm=True, save=save, LAMBDA=LAMBDA)
+        #Correle.Show_theThing(coef[:, -5:])
+        #print("THE MYSTERY")
+        #input()
         hidden = [Correle.Prediction_ofCoefficient(dane_onlyX=dan, coeffiecient=norm, norm=True) for dan in test]
         result = [Correle.Prediction_ofCoefficient(dane_onlyX=dan, coeffiecient=coef) for dan in hidden]
         return result
@@ -164,12 +170,26 @@ class Correle:
         distance = distance ** 0.5
         return distance
     @staticmethod
+    def Prediction_naSterydach(pred, wynik, LAMBDA = [5,1,8,20,22,21,16,11], test = None):
+        if test is None:
+            test = pred[:]
+        for L in LAMBDA[:-1]:
+            coef = Correle.Coefficient_for_all_dane(dany=pred, wyniks=wynik, unsafe=True, norm=True, LAMBDA=L)
+            pred = [Correle.Prediction_ofCoefficient(coeffiecient=coef, dane_onlyX=pre, norm=True) for pre in pred]
+            test = [Correle.Prediction_ofCoefficient(coeffiecient=coef, dane_onlyX=tes, norm=True) for tes in test]
+            #print(np.vstack(pred).shape)
+            #print(L, np.max(np.std(np.vstack(pred), axis=0)), np.mean(np.std(np.vstack(pred), axis=0)))
+            #pred = [1 / (1 + np.exp(-pre)) for pre in pred]
+        coef = Correle.Coefficient_for_all_dane(dany=pred, wyniks=wynik, unsafe=True, norm=False, LAMBDA=LAMBDA[-1])
+        pred = [Correle.Prediction_ofCoefficient(coeffiecient=coef, dane_onlyX=tes, norm=False) for tes in test]
+        return pred
+    @staticmethod
     def ORDER(dany, wyniks, test, SIGMA, number_songs = 100):
-        matrix = Correle.Prediction_ofNorm(dany, wyniks, test)
+        matrix = Correle.Prediction_naSterydach(dany, wyniks, test = test)
         matrix = np.vstack(matrix)
         #if matrix.shape[0] < number_songs:
         #    number_songs = matrix.shape[0]
-        #Correle.Show_theThing(matrix[:, -wyniks[-1].shape[1]:])
+        Correle.Show_theThing(matrix[:, -wyniks[-1].shape[1]:])
         #print(matrix[:, -wyniks[-1].shape[1]:].shape)
         #print(dany.shape)
         #input()
@@ -224,23 +244,26 @@ class Correle:
         return winners
     @staticmethod
     def Correlation_betweenSession(dany, wyniks):
-        matrix = Correle.Prediction_ofNorm(dany=dany, wynik=wyniks, save=10)
+        matrix = Correle.Prediction_naSterydach(dany, wyniks)
         [print(matri.shape) for matri in matrix]
         matrix = np.array([matri.mean(axis=0) for matri in matrix])
         matrix = (matrix - matrix.mean(axis=0)) / matrix.std(axis=0)
         dmatrix = Correle.distance_matrix(matrix=matrix)
         Correle.Show_theThing(dmatrix)
-        print(dmatrix.shape)
+        print(dmatrix.shape, 'distance')
         input()
         Correle.Show_theThing(matrix[:, 4::5])
-        print(matrix.shape)
+        print(matrix.shape, 'likes')
+        input()
+        Correle.Show_theThing(matrix[:, -5:])
+        print(matrix.shape, 'recent')
         input()
         matrix = Correle.Correaltion(matrix=matrix, axis=0)
         Correle.Show_theThing(matrix)
-        print(matrix.shape)
+        print(matrix.shape, 'correlation')
     @staticmethod
     def lowerdimension(dany = None, wyniks = None, distance = None):
-        matrix = Correle.Prediction_ofNorm(dany=dany, wynik=wyniks, save=10)
+        matrix = Correle.Prediction_naSterydach(dany, wyniks)
         matrix = np.array([matri.mean(axis=0) for matri in matrix])
         matrix = (matrix - matrix.mean(axis=0)) / matrix.std(axis=0)
         matrix = 1 / (1 + np.exp(-matrix))
