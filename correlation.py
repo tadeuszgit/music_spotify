@@ -170,7 +170,8 @@ class Correle:
         distance = distance ** 0.5
         return distance
     @staticmethod
-    def Prediction_naSterydach(pred, wynik, LAMBDA = [5,1,8,20,22,21,16,11], test = None):
+    def Prediction_naSterydach(pred, wynik, LAMBDA = [0,0.08,11,12,10,9,8,8,7,7,7,7,6,6,6,6,5,5,5,5,5], test = None):
+        LAMBDA = LAMBDA[:]
         if test is None:
             test = pred[:]
         for L in LAMBDA[:-1]:
@@ -180,8 +181,14 @@ class Correle:
             #print(np.vstack(pred).shape)
             #print(L, np.max(np.std(np.vstack(pred), axis=0)), np.mean(np.std(np.vstack(pred), axis=0)))
             #pred = [1 / (1 + np.exp(-pre)) for pre in pred]
+            #Correle.Show_theThing(coef[:,-5:])
+            #print("loly")
+            #input()
         coef = Correle.Coefficient_for_all_dane(dany=pred, wyniks=wynik, unsafe=True, norm=False, LAMBDA=LAMBDA[-1])
         pred = [Correle.Prediction_ofCoefficient(coeffiecient=coef, dane_onlyX=tes, norm=False) for tes in test]
+        #Correle.Show_theThing(coef[:,-5:])
+        #print("loly end", LAMBDA[-1])
+        #input()
         return pred
     @staticmethod
     def ORDER(dany, wyniks, test, SIGMA, number_songs = 100):
@@ -189,7 +196,7 @@ class Correle:
         matrix = np.vstack(matrix)
         #if matrix.shape[0] < number_songs:
         #    number_songs = matrix.shape[0]
-        Correle.Show_theThing(matrix[:, -wyniks[-1].shape[1]:])
+        #Correle.Show_theThing(matrix[:, -wyniks[-1].shape[1]:])
         #print(matrix[:, -wyniks[-1].shape[1]:].shape)
         #print(dany.shape)
         #input()
@@ -204,6 +211,8 @@ class Correle:
         #distance = (matrix[:, None, :] - matrix[None, :, :]) ** 2 @ weight
         #distance = distance ** 0.5
         distance = Correle.distance_matrix(matrix=matrix)
+        distance = (distance - distance.mean())/distance.std()
+        #SIGMA = np.mean(np.mean(distance ** 2, axis=0)**0.5) 
         winners = []
         uniq = 5
         #power = np.sum(np.exp(-distance ** 2 / SIGMA ** 2), axis=0) / np.mean(np.sum(np.exp(-distance ** 2 / SIGMA ** 2), axis=0))
@@ -238,13 +247,17 @@ class Correle:
             winners.append(winner[:number_songs])
             print(len(winner))"""
         power = np.sum(np.exp(-distance ** 2 / SIGMA ** 2), axis=0) / np.mean(np.sum(np.exp(-distance ** 2 / SIGMA ** 2), axis=0))
+        power = np.sum(np.exp(-distance ** 2 / SIGMA ** 2), axis=0)
         #print(winners[-1])
-        #Correle.Show_theThing(power[:, None])
-        print(SIGMA, np.sum(power**2)/matrix.shape[0]-1)
+        Correle.Show_theThing(distance[:, -5:])
+        print(SIGMA, np.sum(power)/matrix.shape[0]-1,power.shape)
         return winners
     @staticmethod
     def Correlation_betweenSession(dany, wyniks):
         matrix = Correle.Prediction_naSterydach(dany, wyniks)
+        Correle.Show_theThing(matrix[-1][:,-5:])
+        print("OUR SHIT")
+        input()
         [print(matri.shape) for matri in matrix]
         matrix = np.array([matri.mean(axis=0) for matri in matrix])
         matrix = (matrix - matrix.mean(axis=0)) / matrix.std(axis=0)
@@ -266,6 +279,8 @@ class Correle:
         matrix = Correle.Prediction_naSterydach(dany, wyniks)
         matrix = np.array([matri.mean(axis=0) for matri in matrix])
         matrix = (matrix - matrix.mean(axis=0)) / matrix.std(axis=0)
+        #matrix = matrix.T
+        #matrix = (matrix - matrix.mean(axis=0)) / matrix.std(axis=0)
         matrix = 1 / (1 + np.exp(-matrix))
         if distance is None:
             distance = Correle.distance_matrix(matrix=matrix)

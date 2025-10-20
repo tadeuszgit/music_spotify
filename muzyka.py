@@ -7,7 +7,7 @@ impo = data_extraction()
 raw, wynik = impo.Open_Multiple()
 
 ##LAMBDA SEARCH
-"""
+
 for i in range(1):
     LAMBDA = 4.2955*(4.2959/4.2955)**(i/100)
     a = 93.31500
@@ -16,18 +16,24 @@ for i in range(1):
     LAMBDA = 0
     pred = raw[:]
     LAMBDA = [5,1,8,20,22,21,16,11]
+    LAMBDA = [0,0.08,11,12,10,9,8,8,7,7,7,7,6,6,6,6,5,5,5,5,5]
     for L in LAMBDA:
         coef = Corr.Coefficient_for_all_dane(dany=pred, wyniks=wynik, unsafe=True, norm=True, LAMBDA=L)
+        coef_acc = Corr.Coefficient_for_all_dane(dany=pred, wyniks=wynik, unsafe=True, norm=False, LAMBDA=L)
+        acc = [Corr.Prediction_ofCoefficient(coeffiecient=coef_acc, dane_onlyX=pre, norm=False) for pre in pred]
+        error = [np.mean(np.mean((acc[j][:, j*5:j*5+5] - wynik[j])**2, axis=0)**0.5/np.std(wynik[j],axis=0)) for j in range(len(acc))]
+        error = np.mean(error)
         pred = [Corr.Prediction_ofCoefficient(coeffiecient=coef, dane_onlyX=pre, norm=False) for pre in pred]
         #print(np.vstack(pred).shape)
-        print(L, np.max(np.std(np.vstack(pred), axis=0)), np.mean(np.std(np.vstack(pred), axis=0)))
+        #print(L, np.std(np.std(np.vstack(pred), axis=0)), np.median(np.std(np.vstack(pred), axis=0)), error)
+        print(acc[-1][-1:,-5:])
         pred = [1 / (1 + np.exp(-pre)) for pre in pred]
-    coef = Corr.Coefficient_for_all_dane(dany=pred, wyniks=wynik, unsafe=True, norm=True, LAMBDA=10)
-    pred = Corr.Prediction_ofCoefficient(coeffiecient=coef, dane_onlyX=pred[-1], norm=False)
-    print(len(pred))
-    input()
-    Corr.Show_theThing(pred[:, -5:])
-    print(np.mean((pred[:, -5:] - wynik[-1])**2)**0.5)"""
+    #coef = Corr.Coefficient_for_all_dane(dany=pred, wyniks=wynik, unsafe=True, norm=False, LAMBDA=6)
+    #pred = Corr.Prediction_ofCoefficient(coeffiecient=coef, dane_onlyX=pred[-1], norm=False)
+    #print(len(pred))
+    #input()
+    #Corr.Show_theThing(pred[:, -5:])
+    #print(np.mean(np.mean((pred[:, -5:] - wynik[-1])**2, axis=0)**0.5/np.std(wynik[-1],axis=0)))
 """lolly=[]
 test = -18
 for k in range(1000):
@@ -72,7 +78,7 @@ print(np.median(lolly), np.mean(lolly))"""
 #print()
 #print(np.sum((pred1[:, -5:] - np.array(wynik[-1]))**2),np.sum((pred2[:, -5:] - np.array(wynik[-1]))**2))
 #Corr.Correlation_betweenSession(raw, wynik)
-Corr.lowerdimension(dany=raw, wyniks=wynik)
+#Corr.lowerdimension(dany=raw, wyniks=wynik)
 #input()
 #raw = np.array(raw)
 #wynik = np.array(wynik)
@@ -84,8 +90,8 @@ Corr.lowerdimension(dany=raw, wyniks=wynik)
 #print(pred.shape)
 #s = SpotifyAPI()
 name = ['Sezon 2 chapter 1','Sezon 2 chapter 2','Sezon 2 chapter 3','Sezon 2 chapter 4','Sezon 3 chapter 1','Sezon 3 chapter 2', 'Sezon 3 chapter 3', '25 Sezon 9 chapter 1', '25 Sezon 10 chapter 1', '25 Sezon 10 chapter 2']
-name = name[-1:]
-#[Corr.ORDER(raw, wynik, raw, si/100, number_songs=100) for si in range(1,1100)]
-order = Corr.ORDER(raw[:], wynik[:], raw[-len(name):], 0.1, number_songs=1000)
+name = name[:]
+[Corr.ORDER(raw, wynik, raw[-len(name):], si/100, number_songs=100) for si in range(2,3)]
+#order = Corr.ORDER(raw[:], wynik[:], raw[-len(name):], 0.17, number_songs=1000)
 print(len(order[-1]))
 #s.create_new_playlists(order, name)
