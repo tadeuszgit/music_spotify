@@ -88,10 +88,10 @@ print(np.median(lolly), np.mean(lolly))"""
 #Corr.Show_theThing(np.round(pred*100))
 #Corr.Show_theThing(np.round(pred[:, 4::5]*100)/100)
 #print(pred.shape)
-#s = SpotifyAPI()
+s = SpotifyAPI()
 name = ['Sezon 2 chapter 1','Sezon 2 chapter 2','Sezon 2 chapter 3','Sezon 2 chapter 4','Sezon 3 chapter 1','Sezon 3 chapter 2', 'Sezon 3 chapter 3', '25 Sezon 9 chapter 1', '25 Sezon 10 chapter 1', '25 Sezon 10 chapter 2']
 name = name[:]
-[Corr.ORDER(raw, wynik, raw[-len(name):], si/100, number_songs=100) for si in range(2,3)]
-#order = Corr.ORDER(raw[:], wynik[:], raw[-len(name):], 0.17, number_songs=1000)
+#[Corr.ORDER(raw, wynik, raw[-len(name):], si/100, number_songs=100) for si in range(2,3)]
+order = Corr.ORDER(raw[:], wynik[:], raw[-len(name):], 0.17, number_songs=1000)
 print(len(order[-1]))
-#s.create_new_playlists(order, name)
+s.create_new_playlists(order, name)

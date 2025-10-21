@@ -211,8 +211,9 @@ class Correle:
         #distance = (matrix[:, None, :] - matrix[None, :, :]) ** 2 @ weight
         #distance = distance ** 0.5
         distance = Correle.distance_matrix(matrix=matrix)
-        distance = (distance - distance.mean())/distance.std()
-        #SIGMA = np.mean(np.mean(distance ** 2, axis=0)**0.5) 
+        #distance = (distance - distance.mean())/distance.std()
+        SIGMA = np.mean(np.mean(distance ** 2, axis=0)**0.5)/2
+        print(SIGMA)
         winners = []
         uniq = 5
         #power = np.sum(np.exp(-distance ** 2 / SIGMA ** 2), axis=0) / np.mean(np.sum(np.exp(-distance ** 2 / SIGMA ** 2), axis=0))
