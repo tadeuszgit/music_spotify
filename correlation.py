@@ -170,7 +170,7 @@ class Correle:
         distance = distance ** 0.5
         return distance
     @staticmethod
-    def Prediction_naSterydach(pred, wynik, LAMBDA = [0,0.08,11,12,10,9,8,8,7,7,7,7,6,6,6,6,5,5,5,5,5], test = None):
+    def Prediction_naSterydach(pred, wynik, LAMBDA = [0,0.08,11,12,10,9,8,8,7,7,7,7,6,6,6,6,5,5,5,5,5], test = None, norm=False):
         LAMBDA = LAMBDA[:]
         if test is None:
             test = pred[:]
@@ -184,8 +184,8 @@ class Correle:
             #Correle.Show_theThing(coef[:,-5:])
             #print("loly")
             #input()
-        coef = Correle.Coefficient_for_all_dane(dany=pred, wyniks=wynik, unsafe=True, norm=False, LAMBDA=LAMBDA[-1])
-        pred = [Correle.Prediction_ofCoefficient(coeffiecient=coef, dane_onlyX=tes, norm=False) for tes in test]
+        coef = Correle.Coefficient_for_all_dane(dany=pred, wyniks=wynik, unsafe=True, norm=norm, LAMBDA=LAMBDA[-1])
+        pred = [Correle.Prediction_ofCoefficient(coeffiecient=coef, dane_onlyX=tes, norm=norm) for tes in test]
         #Correle.Show_theThing(coef[:,-5:])
         #print("loly end", LAMBDA[-1])
         #input()
@@ -212,10 +212,10 @@ class Correle:
         #distance = distance ** 0.5
         distance = Correle.distance_matrix(matrix=matrix)
         #distance = (distance - distance.mean())/distance.std()
-        SIGMA = np.mean(np.mean(distance ** 2, axis=0)**0.5)/2
+        SIGMA = np.mean(np.mean(distance ** 2, axis=0)**0.5)
         print(SIGMA)
         winners = []
-        uniq = 5
+        uniq = 80
         #power = np.sum(np.exp(-distance ** 2 / SIGMA ** 2), axis=0) / np.mean(np.sum(np.exp(-distance ** 2 / SIGMA ** 2), axis=0))
         power = np.exp(-distance**2/SIGMA**2)
         for i in range(uniq):
@@ -225,9 +225,14 @@ class Correle:
             while len(winner) < number_songs:
                 luck = gmatrix / gpower[winner, :].mean(axis=0)
                 idx = np.argmax(luck)
+                #print(matrix[idx, -5:])
                 winner.append(idx)
-            winners.append(winner)
-            #winners.append(np.argsort(1-gmatrix))
+            #winners.append(winner)
+            comp = np.hstack((matrix[np.argsort(distance[-i-46-1]), -5:],np.sort(distance[-i-46-1])[:, None]))[:number_songs, :]
+            Correle.Show_theThing(comp)
+            winners.append(np.argsort(distance[-i-46-1])[:number_songs])
+            print(81 - i)
+            input()
             #print(winner)
         #input()
         """for i in range(uniq):
@@ -250,12 +255,14 @@ class Correle:
         power = np.sum(np.exp(-distance ** 2 / SIGMA ** 2), axis=0) / np.mean(np.sum(np.exp(-distance ** 2 / SIGMA ** 2), axis=0))
         power = np.sum(np.exp(-distance ** 2 / SIGMA ** 2), axis=0)
         #print(winners[-1])
-        Correle.Show_theThing(distance[:, -5:])
+        #Correle.Show_theThing(distance[:, -5:])
         print(SIGMA, np.sum(power)/matrix.shape[0]-1,power.shape)
         return winners
     @staticmethod
-    def Correlation_betweenSession(dany, wyniks):
-        matrix = Correle.Prediction_naSterydach(dany, wyniks)
+    def Correlation_betweenSession(dany, wyniks, test=None):
+        if test is None:
+            test = dany[:]
+        matrix = Correle.Prediction_naSterydach(dany, wyniks, test=test)
         Correle.Show_theThing(matrix[-1][:,-5:])
         print("OUR SHIT")
         input()
@@ -263,7 +270,7 @@ class Correle:
         matrix = np.array([matri.mean(axis=0) for matri in matrix])
         matrix = (matrix - matrix.mean(axis=0)) / matrix.std(axis=0)
         dmatrix = Correle.distance_matrix(matrix=matrix)
-        Correle.Show_theThing(dmatrix)
+        Correle.Show_theThing(1/(1+np.exp(-(dmatrix-dmatrix.mean())/dmatrix.std())))
         print(dmatrix.shape, 'distance')
         input()
         Correle.Show_theThing(matrix[:, 4::5])
@@ -271,6 +278,9 @@ class Correle:
         input()
         Correle.Show_theThing(matrix[:, -5:])
         print(matrix.shape, 'recent')
+        input()
+        Correle.Show_theThing(matrix[:, :])
+        print(matrix.shape, 'all shit')
         input()
         matrix = Correle.Correaltion(matrix=matrix, axis=0)
         Correle.Show_theThing(matrix)

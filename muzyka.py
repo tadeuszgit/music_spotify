@@ -5,7 +5,7 @@ import numpy as np
 impo = data_extraction()
 
 raw, wynik = impo.Open_Multiple()
-
+analyse = impo.Open_Multiple(both=False, all_com=False)[:-1]
 ##LAMBDA SEARCH
 
 for i in range(1):
@@ -77,7 +77,7 @@ print(np.median(lolly), np.mean(lolly))"""
 #Corr.Show_theThing(np.array(wynik[-1])[-10:,-5:])
 #print()
 #print(np.sum((pred1[:, -5:] - np.array(wynik[-1]))**2),np.sum((pred2[:, -5:] - np.array(wynik[-1]))**2))
-#Corr.Correlation_betweenSession(raw, wynik)
+Corr.Correlation_betweenSession(raw, wynik, test=analyse)
 #Corr.lowerdimension(dany=raw, wyniks=wynik)
 #input()
 #raw = np.array(raw)
@@ -89,9 +89,15 @@ print(np.median(lolly), np.mean(lolly))"""
 #Corr.Show_theThing(np.round(pred[:, 4::5]*100)/100)
 #print(pred.shape)
 s = SpotifyAPI()
-name = ['Sezon 2 chapter 1','Sezon 2 chapter 2','Sezon 2 chapter 3','Sezon 2 chapter 4','Sezon 3 chapter 1','Sezon 3 chapter 2', 'Sezon 3 chapter 3', '25 Sezon 9 chapter 1', '25 Sezon 10 chapter 1', '25 Sezon 10 chapter 2']
+lol = Corr.Prediction_naSterydach(raw, wynik, test=analyse, norm=True)[-1]
+Corr.Show_theThing(lol[:, -1:])
+print(lol.shape)
+name = ['Sezon 2 chapter 1','Sezon 2 chapter 2','Sezon 2 chapter 3','Sezon 2 chapter 4','Sezon 3 chapter 1','Sezon 3 chapter 2', 'Sezon 3 chapter 3', '25 Sezon 9 chapter 1', '25 Sezon 10 chapter 1', '25 Sezon 10 chapter 2', f"Lumyn's Mixtape"]
 name = name[:]
+analyse = analyse
+#name = [f"Lumyn's Mixtape"]
 #[Corr.ORDER(raw, wynik, raw[-len(name):], si/100, number_songs=100) for si in range(2,3)]
-order = Corr.ORDER(raw[:], wynik[:], raw[-len(name):], 0.17, number_songs=1000)
-print(len(order[-1]))
-s.create_new_playlists(order, name)
+order = Corr.ORDER(raw[:], wynik[:], analyse[-len(name):], 0.17, number_songs=100)
+#print(len(order[-1]))
+s.create_new_playlists(order, name, name_new_playlists=[str(i) for i in range(80)])
+name_new_playlists=['Lym Gym', 'Lym Past', 'Lym Better', 'Lym idk', 'Lym Like']
