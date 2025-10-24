@@ -191,7 +191,7 @@ class Correle:
         #input()
         return pred
     @staticmethod
-    def ORDER(dany, wyniks, test, SIGMA, number_songs = 100):
+    def ORDER(dany, wyniks, test, SIGMA, number_songs = 100, similar = None):
         matrix = Correle.Prediction_naSterydach(dany, wyniks, test = test)
         matrix = np.vstack(matrix)
         #if matrix.shape[0] < number_songs:
@@ -212,27 +212,47 @@ class Correle:
         #distance = distance ** 0.5
         distance = Correle.distance_matrix(matrix=matrix)
         #distance = (distance - distance.mean())/distance.std()
-        SIGMA = np.mean(np.mean(distance ** 2, axis=0)**0.5)
+        SIGMA = np.mean(np.mean(distance ** 2, axis=0)**0.5)/SIGMA
         print(SIGMA)
         winners = []
-        uniq = 80
+        if similar is None:
+            uniq = 1
+        else:
+            uniq = len(similar)
         #power = np.sum(np.exp(-distance ** 2 / SIGMA ** 2), axis=0) / np.mean(np.sum(np.exp(-distance ** 2 / SIGMA ** 2), axis=0))
         power = np.exp(-distance**2/SIGMA**2)
         for i in range(uniq):
-            gmatrix = matrix[:, -uniq+i]
+            print(i)
+            if similar is None:
+                gmatrix = matrix[:, -uniq+i]
+            else:
+                cons = distance[:, similar[i]]
+                cons = (cons - cons.mean())/cons.std()
+                cons = 1/(1+np.exp(cons))
+                gmatrix = cons
             gpower = power * gmatrix[:, None]
             winner = [np.argmax(gmatrix)]
             while len(winner) < number_songs:
-                luck = gmatrix / gpower[winner, :].mean(axis=0)
-                idx = np.argmax(luck)
-                #print(matrix[idx, -5:])
+                luck = gmatrix / (gpower[winner, :].mean(axis=0) + 0.000001)
+                if np.any(np.isinf(luck)):
+                    win = np.argmax(gmatrix[np.isinf(luck)])
+                    #print(np.isinf(luck).sum())
+                    idx = np.where(np.isinf(luck))[0][win]
+                else:
+                    idx = np.argmax(luck)
+                print(gmatrix[idx])
+                
                 winner.append(idx)
-            #winners.append(winner)
-            comp = np.hstack((matrix[np.argsort(distance[-i-46-1]), -5:],np.sort(distance[-i-46-1])[:, None]))[:number_songs, :]
-            Correle.Show_theThing(comp)
-            winners.append(np.argsort(distance[-i-46-1])[:number_songs])
-            print(81 - i)
-            input()
+                #Correle.Show_theThing(distance[winner, :][:, [idx]])
+            winners.append(winner)
+            #comp = np.hstack((matrix[np.argsort(distance[-i-46-1]), -5:],np.sort(distance[-i-46-1])[:, None]))[:number_songs, :]
+            #Correle.Show_theThing(comp)
+            #winners.append(np.argsort(distance[-i-46-1])[:number_songs])
+            #print(81 - i)
+            #print()
+            #Correle.Show_theThing(matrix[np.argsort(1-gmatrix)[:number_songs], -5:])
+            #print(np.argsort(1-gmatrix))
+            #input()
             #print(winner)
         #input()
         """for i in range(uniq):
@@ -340,6 +360,23 @@ class Correle:
         error = [float(ses_diff.mean() ** 0.5) for ses_diff in diff]
         print()
         print(error)
+    @staticmethod
+    def K_mean(matrix, k_mean = 10):
+        distance = Correle.distance_matrix(matrix=matrix)
+        seed = list(range(k_mean))
+        choosen = np.argmin(distance[seed, :], axis=0)
+        power = [np.where(choosen==i)[0] for i in range(len(seed))]
+        print([len(powe) for powe in power])
+        for i in range(10):
+            common = np.vstack([np.mean(matrix[powe, :], axis=0) for powe in power])
+            Correle.Show_theThing(common[:, -5:])
+            common = np.vstack((common, matrix))
+            k_distance = Correle.distance_matrix(matrix=common)
+            seed = np.argmin(k_distance[k_mean:, :k_mean], axis=0)
+            choosen = np.argmin(distance[seed, :], axis=0)
+            power = [np.where(choosen==j)[0] for j in range(len(seed))]
+            print([len(powe) for powe in power])
+        return power
 
 def test_accuracy(max_groups = 200, period = 100, members = 5, atribu = 3, umie = 2):
     for i in range(10, max_groups):
