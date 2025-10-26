@@ -282,12 +282,20 @@ class Correle:
     def Correlation_betweenSession(dany, wyniks, test=None):
         if test is None:
             test = dany[:]
-        matrix = Correle.Prediction_naSterydach(dany, wyniks, test=test)
-        Correle.Show_theThing(matrix[-1][:,-5:])
+        matrix = Correle.Prediction_naSterydach(dany, wyniks, test=test, norm=True)
+        Correle.Show_theThing(matrix[-2][:,-5:])
+        pi_c = np.array([matri.shape[0] for matri in matrix])/np.sum(matri.shape[0] for matri in matrix)
         print("OUR SHIT")
         input()
         [print(matri.shape) for matri in matrix]
         matrix = np.array([matri.mean(axis=0) for matri in matrix])
+        Correle.Show_theThing(matrix[:, -5:])
+        print(matrix.shape, 'recent')
+        Correle.Show_theThing(matrix.std(axis=0, keepdims=True))
+        print(matrix.std(axis=0, keepdims=True).sum())
+        D = pi_c[:, None] * pi_c[None, :] * Correle.distance_matrix(matrix=matrix)
+        print(np.sum(D))
+        input()
         matrix = (matrix - matrix.mean(axis=0)) / matrix.std(axis=0)
         dmatrix = Correle.distance_matrix(matrix=matrix)
         Correle.Show_theThing(1/(1+np.exp(-(dmatrix-dmatrix.mean())/dmatrix.std())))
@@ -364,19 +372,104 @@ class Correle:
     def K_mean(matrix, k_mean = 10):
         distance = Correle.distance_matrix(matrix=matrix)
         seed = list(range(k_mean))
-        choosen = np.argmin(distance[seed, :], axis=0)
-        power = [np.where(choosen==i)[0] for i in range(len(seed))]
+        choosen = np.argmin(distance[:k_mean, :], axis=0)
+        power = [np.where(choosen==i)[0] for i in range(k_mean)]
         print([len(powe) for powe in power])
         for i in range(10):
             common = np.vstack([np.mean(matrix[powe, :], axis=0) for powe in power])
             Correle.Show_theThing(common[:, -5:])
             common = np.vstack((common, matrix))
             k_distance = Correle.distance_matrix(matrix=common)
-            seed = np.argmin(k_distance[k_mean:, :k_mean], axis=0)
-            choosen = np.argmin(distance[seed, :], axis=0)
+            #seed = np.argmin(k_distance[k_mean:, :k_mean], axis=0)
+            choosen = np.argmin(k_distance[:k_mean, k_mean:], axis=0)
+            #choosen = np.argmin(distance[seed, :], axis=0)
             power = [np.where(choosen==j)[0] for j in range(len(seed))]
             print([len(powe) for powe in power])
         return power
+    
+    @staticmethod
+    def PCA(matrix):
+        dane_centre = matrix - matrix.mean(axis=0)
+        covariance = (dane_centre.T @ dane_centre) / dane_centre.shape[0]
+        values, vectors = np.linalg.eig(covariance)
+        idx = np.argsort(values)[::-1]
+        values = values[idx]
+        vectors = vectors[:, idx].real
+        pos = (np.isreal(values)) & (values > 0.0000001)
+        vectors = vectors[:, pos]
+        TTT = dane_centre @ vectors
+        return TTT
+    
+    @staticmethod
+    def GMM(matrix, k_mean = 10):
+        epsilon = 0.00001
+        n_agent = matrix.shape[0]
+
+        compressed = Correle.PCA(matrix=matrix)
+        idx = np.random.choice(n_agent, k_mean, replace=False)
+        idx = list(range(k_mean))
+        means_c = compressed[:k_mean, :]
+
+        diff = compressed[:, None, :] - means_c[None, :, :]
+        print(diff.shape)
+        stds_c = diff.transpose(1,2,0) @ diff.transpose(1,0,2) / n_agent
+        print(stds_c.shape)
+        stds_c += np.eye(stds_c.shape[1]) * epsilon
+        pi_c = np.ones(k_mean) / k_mean
+        for i in range(10):
+            inv_stds_c = np.linalg.inv(stds_c)
+            norm_const = ((2 * np.pi) ** (compressed.shape[1]/2)) * np.sqrt(np.linalg.det(stds_c))
+            #print(np.linalg.det(stds_c))
+            #print(np.linalg.det(stds_c * (10000)))
+            exponent = -0.5 * diff[:,:,None,:] @ inv_stds_c[None,:,:,:] @ diff[:,:,:,None]
+            exponent = exponent.squeeze(-1).squeeze(-1)
+            exponent = np.clip(exponent, -300,300)
+            prob = np.exp(exponent) / norm_const
+            
+            lihoood = prob * pi_c
+            lihood = lihoood / lihoood.sum(axis=1)[:, None]
+            
+            n_dudes = lihood.sum(axis=0) + epsilon
+            pi_c = n_dudes / n_agent
+            print(pi_c)
+
+            #UPDATE
+            means_c = lihood.T @ compressed / n_dudes[:,None]
+            if i == 9:
+                dist = Correle.distance_matrix(matrix=means_c)
+                D = np.sum(pi_c[:, None] * pi_c[None, :] * dist)
+                print(D)
+                input()
+            #Correle.Show_theThing(np.where(lihood>0.001, lihood,0))
+            #print(pi_c)
+            #input()
+            diff = compressed[:,None,:] - means_c[None,:,:]
+            stds_c = diff.transpose(1,2,0) * lihood.T[:,None,:] @ diff.transpose(1,0,2) / n_dudes[:,None,None]
+            stds_c = 0.5 * (stds_c + stds_c.transpose(0,2,1)) + np.eye(compressed.shape[1]) * epsilon
+        print(np.where(lihood[:, 0] > 0.1, lihood[:, 0], 0))
+        lihod = lihood /lihood.sum(axis=0)
+        steps = (1 + 5**0.5)/2-1
+        order = []
+        for j in range(k_mean):
+            order.append([])
+            total = 0
+            while len(order[-1]) < 200:
+                for i in range(n_agent):
+                    total += lihod[i,j]
+                    if total > steps:
+                        total -= steps
+                        order[-1].append(i)
+        win = np.where(lihood > 0.5)
+        winners = np.vstack([np.mean(matrix[orde, :], axis=0) for orde in win])
+        Correle.Show_theThing(winners[:, -5:])
+        print()
+        Correle.Show_theThing(winners.std(axis=0, keepdims=True))
+        print(winners.std(axis=0, keepdims=True).sum())
+        input()
+        winners = (winners - winners.mean(axis=0))/winners.std(axis=0)
+        Correle.Show_theThing(winners[:, -5:])
+        return order
+        #return np.argsort(-lihoood, axis=0)[:200, :].T
 
 def test_accuracy(max_groups = 200, period = 100, members = 5, atribu = 3, umie = 2):
     for i in range(10, max_groups):

@@ -8,7 +8,7 @@ raw, wynik = impo.Open_Multiple()
 analyse = impo.Open_Multiple(both=False, all_com=False)[:-1]
 ##LAMBDA SEARCH
 
-for i in range(1):
+"""for i in range(1):
     LAMBDA = 4.2955*(4.2959/4.2955)**(i/100)
     a = 93.31500
     b = 93.31510
@@ -34,7 +34,7 @@ for i in range(1):
     #input()
     #Corr.Show_theThing(pred[:, -5:])
     #print(np.mean(np.mean((pred[:, -5:] - wynik[-1])**2, axis=0)**0.5/np.std(wynik[-1],axis=0)))
-"""lolly=[]
+""""""lolly=[]
 test = -18
 for k in range(1000):
     ridx = np.arange(len(raw[test]))
@@ -77,7 +77,7 @@ print(np.median(lolly), np.mean(lolly))"""
 #Corr.Show_theThing(np.array(wynik[-1])[-10:,-5:])
 #print()
 #print(np.sum((pred1[:, -5:] - np.array(wynik[-1]))**2),np.sum((pred2[:, -5:] - np.array(wynik[-1]))**2))
-#Corr.Correlation_betweenSession(raw, wynik, test=analyse)
+Corr.Correlation_betweenSession(raw, wynik, test=analyse[:-1])
 #Corr.lowerdimension(dany=raw, wyniks=wynik)
 #input()
 #raw = np.array(raw)
@@ -95,7 +95,8 @@ name = ['Sezon 2 chapter 1','Sezon 2 chapter 2','Sezon 2 chapter 3','Sezon 2 cha
 name = name[:]
 analyse = analyse
 lol = Corr.Prediction_naSterydach(raw, wynik, test=analyse[-len(name):], norm=True)
-order = Corr.K_mean(np.vstack(lol))
+order = Corr.GMM(np.vstack(lol), k_mean=11)
+#order = Corr.K_mean(np.vstack(lol))
 #name = [f"Lumyn's Mixtape"]
 #[Corr.ORDER(raw, wynik, raw[-len(name):], si/100, number_songs=100) for si in range(2,3)]
 #order = Corr.ORDER(raw[:], wynik[:], analyse[-len(name):], 4, number_songs=10)
