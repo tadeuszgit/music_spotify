@@ -33,8 +33,10 @@ analyse = impo.Open_Multiple(both=False, all_com=False)[:-1]
     #print(len(pred))
     #input()
     #Corr.Show_theThing(pred[:, -5:])
-    #print(np.mean(np.mean((pred[:, -5:] - wynik[-1])**2, axis=0)**0.5/np.std(wynik[-1],axis=0)))
-""""""lolly=[]
+    #print(np.mean(np.mean((pred[:, -5:] - wynik[-1])**2, axis=0)**0.5/np.std(wynik[-1],axis=0)))"""
+
+    
+"""lolly=[]
 test = -18
 for k in range(1000):
     ridx = np.arange(len(raw[test]))
@@ -77,6 +79,7 @@ print(np.median(lolly), np.mean(lolly))"""
 #Corr.Show_theThing(np.array(wynik[-1])[-10:,-5:])
 #print()
 #print(np.sum((pred1[:, -5:] - np.array(wynik[-1]))**2),np.sum((pred2[:, -5:] - np.array(wynik[-1]))**2))
+#[print(len(ana)) for ana in analyse]
 Corr.Correlation_betweenSession(raw, wynik, test=analyse[:-1])
 #Corr.lowerdimension(dany=raw, wyniks=wynik)
 #input()
@@ -88,21 +91,24 @@ Corr.Correlation_betweenSession(raw, wynik, test=analyse[:-1])
 #Corr.Show_theThing(np.round(pred*100))
 #Corr.Show_theThing(np.round(pred[:, 4::5]*100)/100)
 #print(pred.shape)
-#s = SpotifyAPI()
+s = SpotifyAPI()
 
 #print(lol.shape)
-name = ['Sezon 2 chapter 1','Sezon 2 chapter 2','Sezon 2 chapter 3','Sezon 2 chapter 4','Sezon 3 chapter 1','Sezon 3 chapter 2', 'Sezon 3 chapter 3', '25 Sezon 9 chapter 1', '25 Sezon 10 chapter 1', '25 Sezon 10 chapter 2', f"Lumyn's Mixtape"]
-name = name[:]
-analyse = analyse
+name = ['Sezon 2 chapter 1','Sezon 2 chapter 2','Sezon 2 chapter 3','Sezon 2 chapter 4','Sezon 3 chapter 1','Sezon 3 chapter 2', 'Sezon 3 chapter 3', '25 Sezon 9 chapter 1', '25 Sezon 10 chapter 1', '25 Sezon 10 chapter 2', '25 Sezon 10 chapter 3', f"Lumyn's Mixtape"]
+name = name[:-1]
+#name = name[-1:]
+analyse = analyse[:-1]
 lol = Corr.Prediction_naSterydach(raw, wynik, test=analyse[-len(name):], norm=True)
-order = Corr.GMM(np.vstack(lol), k_mean=11)
+#order = Corr.GMM(np.vstack(lol), k_mean=11)
 #order = Corr.K_mean(np.vstack(lol))
 #name = [f"Lumyn's Mixtape"]
 #[Corr.ORDER(raw, wynik, raw[-len(name):], si/100, number_songs=100) for si in range(2,3)]
-#order = Corr.ORDER(raw[:], wynik[:], analyse[-len(name):], 4, number_songs=10)
+order = Corr.ORDER(raw[:], wynik[:], analyse[-len(name):], 4, number_songs=2000)
 #input()
 #order = Corr.ORDER(raw[:], wynik[:], analyse[-len(name):], 40, number_songs=1000, similar=order[0])
 Corr.Show_theThing(order)
+input()
 #print(len(order[-1]))
-s.create_new_playlists(order, name, name_new_playlists=[str(i) for i in range(len(order))])
+s.create_new_playlists(order, name)
 name_new_playlists=['Lym Gym', 'Lym Past', 'Lym Better', 'Lym idk', 'Lym Like']
+name_new_playlists=[str(i) for i in range(len(order))]

@@ -216,7 +216,7 @@ class Correle:
         print(SIGMA)
         winners = []
         if similar is None:
-            uniq = 1
+            uniq = 5
         else:
             uniq = len(similar)
         #power = np.sum(np.exp(-distance ** 2 / SIGMA ** 2), axis=0) / np.mean(np.sum(np.exp(-distance ** 2 / SIGMA ** 2), axis=0))
@@ -283,9 +283,11 @@ class Correle:
         if test is None:
             test = dany[:]
         matrix = Correle.Prediction_naSterydach(dany, wyniks, test=test, norm=True)
-        Correle.Show_theThing(matrix[-2][:,-5:])
+        Correle.Show_theThing(matrix[-1][:,-5:])
         pi_c = np.array([matri.shape[0] for matri in matrix])/np.sum(matri.shape[0] for matri in matrix)
-        print("OUR SHIT")
+        print("OUR SHIT", matrix[-1].shape)
+        print("OUR SHIT", matrix[-2].shape)
+        print("OUR SHIT", matrix[-3].shape)
         input()
         [print(matri.shape) for matri in matrix]
         matrix = np.array([matri.mean(axis=0) for matri in matrix])
