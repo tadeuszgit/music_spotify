@@ -80,8 +80,9 @@ print(np.median(lolly), np.mean(lolly))"""
 #print()
 #print(np.sum((pred1[:, -5:] - np.array(wynik[-1]))**2),np.sum((pred2[:, -5:] - np.array(wynik[-1]))**2))
 #[print(len(ana)) for ana in analyse]
-Corr.Correlation_betweenSession(raw, wynik, test=analyse[:-1])
-#Corr.lowerdimension(dany=raw, wyniks=wynik)
+
+#Corr.Correlation_betweenSession(raw, wynik, test=analyse[:-1])
+Corr.lowerdimension(dany=raw, wyniks=wynik)
 #input()
 #raw = np.array(raw)
 #wynik = np.array(wynik)
@@ -98,17 +99,22 @@ name = ['Sezon 2 chapter 1','Sezon 2 chapter 2','Sezon 2 chapter 3','Sezon 2 cha
 name = name[:-1]
 #name = name[-1:]
 analyse = analyse[:-1]
-lol = Corr.Prediction_naSterydach(raw, wynik, test=analyse[-len(name):], norm=True)
+#lol = Corr.Prediction_naSterydach(raw, wynik, test=analyse[-len(name):], norm=True)
+for i in range(1):
+    order = Corr.ORDER_better(raw[:], wynik[:], analyse[-len(name):], 1, number_songs=100)
+    Corr.Show_theThing(np.array(order)[:, :5])
+    input()
 #order = Corr.GMM(np.vstack(lol), k_mean=11)
 #order = Corr.K_mean(np.vstack(lol))
 #name = [f"Lumyn's Mixtape"]
 #[Corr.ORDER(raw, wynik, raw[-len(name):], si/100, number_songs=100) for si in range(2,3)]
-order = Corr.ORDER(raw[:], wynik[:], analyse[-len(name):], 4, number_songs=2000)
+#order = Corr.ORDER(raw[:], wynik[:], analyse[-len(name):], 4, number_songs=2000)
 #input()
 #order = Corr.ORDER(raw[:], wynik[:], analyse[-len(name):], 40, number_songs=1000, similar=order[0])
-Corr.Show_theThing(order)
-input()
+
+#input()
 #print(len(order[-1]))
 s.create_new_playlists(order, name)
 name_new_playlists=['Lym Gym', 'Lym Past', 'Lym Better', 'Lym idk', 'Lym Like']
 name_new_playlists=[str(i) for i in range(len(order))]
+#s.create_new_playlists(order, name, name_new_playlists=name_new_playlists)
