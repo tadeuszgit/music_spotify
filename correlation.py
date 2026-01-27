@@ -93,7 +93,10 @@ class Correle:
 
         mat = matrix_one[:, :m+1].T @ matrix_one
         A = mat[:,:m+1]
-        A += LAMBDA * np.eye(A.shape[0]) * matrix_one[:, :m+1].std(axis=0, keepdims=True) ** 2
+        if type(LAMBDA) == int or type(LAMBDA) == float:
+            A += LAMBDA * np.eye(A.shape[0]) * matrix_one[:, :m+1].std(axis=0, keepdims=True) ** 2
+        else:
+            A += LAMBDA
         b = mat[:, m+1:]
         x = np.linalg.solve(A, b)
         if norm:
@@ -225,13 +228,45 @@ class Correle:
         weight = 1/np.sum(corr**2, axis=0)
         weight /= weight.sum()
         weight *= weight.shape
-        #print(weight)
-        distance = (matrix[:, None, :] - matrix[None, :, :]) ** 2 @ weight
-        distance = distance ** 0.5
+        matri = matrix - matrix.mean(axis=0)
+        matri *= weight[None, :]
+        distance = matri @ matri.T
+        distance = 1 - distance / (np.diag(distance)[:, None] @ np.diag(distance)[None, :]) ** 0.5
+        print(matrix.shape)
+        print(distance.shape)
+        #distance = (matrix[:, None, :] - matrix[None, :, :]) ** 2 @ weight
+        #distance = distance ** 0.5
         return distance
+    #FULL_ANALYSE HAVE TO BE GIVE
+    def Prediction_Belonging(pred, wynik, LAMBDA1 = None, LAMBDA2 = None, test = None, norm = False, size = None, k = 1):
+        matrix = Correle.Prediction_naSterydach(pred=pred, wynik=wynik, LAMBDA=LAMBDA1, test=test, norm = True)
+        wynik2 = []
+        for i in range(len(matrix)):
+            mat = np.zeros((matrix[i].shape[0], len(matrix)))
+            mat[:, i] = 1
+            wynik2.append(mat)
+        if LAMBDA2 is None:
+            LAMBDA2 = [0]
+        if size is None:
+            size = len(test)
+        test = matrix[-size:]
+        matrix = [np.vstack(matrix)]
+        wynik2 = [np.vstack(wynik2)]
+        #print(wynik2[-1][-2])
+        for i in range(200):
+            matrix = Correle.Prediction_naSterydach(pred=matrix, wynik=wynik2, LAMBDA=LAMBDA2, norm = norm)
+            wynik2 = [((mate - np.min(mate, axis=1)[:, None])/(np.max(mate, axis=1)[:, None] - np.min(mate, axis=1)[:, None])) ** k for mate in matrix]
+        #Correle.Show_theThing(wynik2[-1][-80:, :])
+        print(k, np.mean(wynik2[-1]), np.std(np.mean(wynik2[-1], axis=1)), np.min(np.sum(wynik2[-1], axis=1)))
+        return matrix
     @staticmethod
-    def Prediction_naSterydach(pred, wynik, LAMBDA = [0,0.1,13,13,12,12,11,10,10,9,9,9,8,8,8,8,7,7,7,7,7], test = None, norm=False):
-        LAMBDA = LAMBDA[:]
+    def Prediction_naSterydach(pred, wynik, LAMBDA = None, test = None, norm=False):
+        #LAMBDA = LAMBDA[:]
+        if LAMBDA is None:
+            LAMBDA = [0, 0.11,14,15]
+            #LAMBDA = [0,0.1,13,13,12,12,11,10,10,9,9,9,8,8,8,8,7,7,7,7,7]
+            LAMBDA = [0.0073627387199761305, 2.2915704202799647, 1.2956709657570973, 1.8286073471850095, 2.1937766209815863, 2.598434473863546, 2.9414601347127878, 3.164344239413132, 3.3316830572445846, 3.4813645178218358, 3.6283058598390876, 3.7791048468586426, 3.93842236192743, 4.10866767171411, 4.291353167504407, 4.488066334178304, 4.700183726740189, 4.92972694733594, 5.180033329864073, 5.455597105994371, 5.761341533163366, 6.102539923382518, 6.485472073919847, 6.917591108344112, 7.408527021743158, 7.971423575870057, 8.623904732099914, 9.389038738437934, 10.2983594223826, 11.398711269637571, 12.763601829310883, 14.515303880713159, 16.876755046871075, 20.30582850773692, 25.939898070991347, 38.02295655277304]
+            print("DEFAULT LAMBDA USED")
         if test is None:
             test = pred[:]
         for L in LAMBDA[:-1]:
@@ -245,6 +280,7 @@ class Correle:
             #print("loly")
             #input()
         coef = Correle.Coefficient_for_all_dane(dany=pred, wyniks=wynik, unsafe=True, norm=norm, LAMBDA=LAMBDA[-1])
+        #print(coef.shape, test[0].shape)
         pred = [Correle.Prediction_ofCoefficient(coeffiecient=coef, dane_onlyX=tes, norm=norm) for tes in test]
         #Correle.Show_theThing(coef[np.argsort(coef[:, -1:].T).T,-1])
         #print("loly end", LAMBDA[-1])
@@ -253,10 +289,22 @@ class Correle:
         #print(np.max(coef[1:,:], axis=1))
         #Correle.Show_theThing(np.round(coef*100)/100)
         #input()
-        #don = np.argsort(coef[1:, :].T)
-        #Correle.Show_theThing(don[:, -10:])
-        #Correle.Show_theThing(coef[:, -1:])
+        don = np.argsort(coef[1:, :].T)
+        Correle.Show_theThing(don[:, -10:])
+        Correle.Show_theThing(coef[:, -1:])
+        #print(coef.shape)
         #print(np.sum(coef[:, -1:] ** 2))
+        #input()
+        Correle.Show_theThing(coef[:, -5:])
+        print("FINAL COEF")
+        input()
+        coef = coef[1:, 4::5][:, -5:]
+        #coef = (coef - coef.mean(axis=0, keepdims=True))/coef.std(axis=0, keepdims=True)
+        corr = Correle.Correaltion(matrix=coef, axis=1)
+        #Correle.Show_theThing(pred[-1][-5:, -5:])
+        #Correle.Show_theThing(corr)
+        #print(corr.shape, coef.shape)
+        #print("WHO IS WHO!")
         #input()
         return pred
     @staticmethod
@@ -319,9 +367,61 @@ class Correle:
         gmatrix = np.prod(gmatrix, axis=1)
         return [np.argsort(1-gmatrix)]
     @staticmethod
-    def ORDER(dany, wyniks, test, SIGMA, number_songs = 100, similar = None, periods = 1, uniq = 5):
-        matrix = Correle.Prediction_naSterydach(dany, wyniks, test = test, norm=True)
+    def order(matrix, distance, SIGMA = 4, number_songs=100, orde = None, chosen = None):
+        SIGMA = np.mean(np.mean(distance ** 2, axis=0)**0.5)/SIGMA
+        power = np.exp(-distance**2/SIGMA**2)
+        winners = []
+        if orde is not None:
+            number_songs += len(orde[-1])
+        for i in range(matrix.shape[1]):
+            gmatrix = matrix[:, i]
+            gpower = power * gmatrix[:, None]
+            #print(gpower.shape)
+            #input()
+            if orde is None:
+                winner = [np.argmax(gmatrix[chosen]) + chosen[0]] if chosen is not None else [np.argmax(gmatrix)]
+            else:
+                winner = list(orde[i])
+            while len(winner) < number_songs:
+                if chosen is None:
+                    luck = gmatrix / (gpower[winner, :].mean(axis=0) + 0.000001)
+                else:
+                    #print(gmatrix[chosen].shape, gpower[winner, chosen].shape)
+                    luck = gmatrix[chosen] / (gpower[winner, :][:, chosen].mean(axis=0) + 0.000001)
+                if np.any(np.isinf(luck)):
+                    win = np.argmax(gmatrix[np.isinf(luck)])
+                    idx = np.where(np.isinf(luck))[0][win]
+                else:
+                    idx = int(np.argmax(luck))
+                idx += chosen[0] if chosen is not None else 0
+                winner.append(idx)
+            winners.append(winner)
+        return np.array(winners)
+    @staticmethod
+    def ORDER(dany=None, wyniks=None, test=None, SIGMA=4, matrix= None, distance=None, number_songs = 100, similar = None, periods = 1, uniq = 5, start = 0, orde = None, chosen = None):
+        if matrix is None:
+            #matrix = Correle.Prediction_Belonging(dany, wyniks, test = test, norm=True)
+            matrix = Correle.Prediction_naSterydach(dany, wyniks, norm=True, test=test)
+        #matrix = matrix[start:start+periods]
+            #matrix = np.vstack(matrix[-1][-320:, :])
         matrix = np.vstack(matrix)
+        #print(matrix.shape)
+        if distance is None:
+            distance = Correle.distance_matrix(matrix=matrix)
+        uniq = [121,15,33,76,103,21,17,50,120,124]
+        uniq = [114,46,18,41,82,20,6,121,120,124]
+        matrix = matrix[:, -5:]
+        #matrix = matrix[:, 4::5][:, start:start+periods]
+        #print(matrix.shape)
+        #matrix = -np.log(1/matrix - 1)
+        #matrix = np.mean(matrix, axis=1, keepdims=True)
+        #matrix = 1/(1+np.exp(-matrix))
+        
+        #print(matrix.shape)
+        #print("HREE")
+        order = Correle.order(matrix=matrix, distance=distance, SIGMA=SIGMA, number_songs=number_songs, orde=orde, chosen=chosen)
+        #input()
+        return order
         #if matrix.shape[0] < number_songs:
         #    number_songs = matrix.shape[0]
         #Correle.Show_theThing(matrix[:, -wyniks[-1].shape[1]:])
@@ -343,19 +443,21 @@ class Correle:
         SIGMA = np.mean(np.mean(distance ** 2, axis=0)**0.5)/SIGMA
         #print(SIGMA)
         winners = []
-        if similar is None:
-            uniq = 5
-        else:
-            uniq = len(similar)
-        #uniq = [13,110,74,10,7,52,112,86,111,114]
+        #if similar is None:
+        #    uniq = 5
+        #else:
+        #    uniq = len(similar)
+        uniq = [51,32,52,18,0,54,99,71,116,119]
         #power = np.sum(np.exp(-distance ** 2 / SIGMA ** 2), axis=0) / np.mean(np.sum(np.exp(-distance ** 2 / SIGMA ** 2), axis=0))
         power = np.exp(-distance**2/SIGMA**2)
-        for i in range(1):
+        for i in range(matrix.shape[1]):
             #print(i)
             if similar is None:
-                gmatrix = matrix[:, uniq]
-                for p in range(1, periods):
-                    gmatrix *= matrix[:, uniq + p*5]
+                gmatrix = np.zeros(matrix[:, i].shape)
+                for p in range(periods):
+                    gmatrix += -np.log(1/matrix[:, i]-1)
+                gmatrix = gmatrix / (periods ** 0.5)
+                gmatrix = 1/(1+np.exp(-gmatrix))
             else:
                 cons = distance[:, similar[i]]
                 cons = (cons - cons.mean())/cons.std()
@@ -375,13 +477,14 @@ class Correle:
                 
                 winner.append(idx)
                 #Correle.Show_theThing(distance[winner, :][:, [idx]])
+            Correle.Show_theThing(np.hstack((-np.log(1/gmatrix[winner][:, None]-1), np.array(winner)[:, None])))
             winners.append(winner)
             #comp = np.hstack((matrix[np.argsort(distance[-i-46-1]), -5:],np.sort(distance[-i-46-1])[:, None]))[:number_songs, :]
             #Correle.Show_theThing(comp)
             #winners.append(np.argsort(distance[-i-46-1])[:number_songs])
             #print(81 - i)
             #print()
-            #Correle.Show_theThing(matrix[np.argsort(1-gmatrix)[:10], -5:])
+            Correle.Show_theThing(matrix[np.argsort(1-gmatrix)[:10], -5:])
             #print(np.argsort(1-gmatrix))
             #input()
             #print(winner)
@@ -413,7 +516,7 @@ class Correle:
     def Correlation_betweenSession(dany, wyniks, test=None):
         if test is None:
             test = dany[:]
-        matrix = Correle.Prediction_naSterydach(dany, wyniks, test=test, norm=False)
+        matrix = Correle.Prediction_naSterydach(dany, wyniks, test=test, norm=True)
         Correle.Show_theThing(matrix[-1][:,-5:])
         #pi_c = np.array([matri.shape[0] for matri in matrix])/np.sum(matri.shape[0] for matri in matrix)
         print("OUR SHIT", matrix[-1].shape)
@@ -423,7 +526,7 @@ class Correle:
         matrix = Correle.Prediction_naSterydach(dany, wyniks, test=test, norm=True)
         [print(matri.shape) for matri in matrix]
         matrix = np.array([matri.mean(axis=0) for matri in matrix])
-        Correle.Show_theThing(matrix[:, -5:])
+        Correle.Show_theThing(matrix[:, [55,17,57,0,101,78,51,127,126,129]])
         print(matrix.shape, 'recent')
         #Correle.Show_theThing(matrix.std(axis=0, keepdims=True))
         #print(matrix.std(axis=0, keepdims=True).sum())
@@ -445,14 +548,16 @@ class Correle:
         Correle.Show_theThing(matrix[:, :])
         print(matrix.shape, 'all shit')
         input()
-        matrix = Correle.Correaltion(matrix=matrix, axis=1)
-        matrix = np.argsort(matrix)
-        Correle.Show_theThing(np.where(matrix > 74, matrix, 0))
+        matrix = Correle.Correaltion(matrix=matrix[:, 4::5], axis=1)
+        Correle.Show_theThing(matrix)
+        #matrix = np.argsort(matrix)
+        #Correle.Show_theThing(np.where(matrix > 74, matrix, 0))
         print(matrix.shape, 'correlation')
+        input()
     @staticmethod
     def lowerdimension(dany = None, wyniks = None, distance = None, test = None):
         matrix = Correle.Prediction_naSterydach(dany, wyniks, norm=True, test=test)
-        #matrix = np.array([matri.mean(axis=0) for matri in matrix])
+        matrix = np.array([matri.mean(axis=0) for matri in matrix])
         matrix = np.vstack(matrix)
         #matrix = (matrix - matrix.mean(axis=0)) / matrix.std(axis=0)
         #matrix = matrix.T
@@ -477,7 +582,7 @@ class Correle:
         window = 100
 
         x = vectors @ np.diag(np.sqrt(values))
-        x = np.array([np.mean(x[i:i+window],axis=0) for i in range(x.shape[0] - window)])
+        #x = np.array([np.mean(x[i:i+window],axis=0) for i in range(x.shape[0] - window)])
         
         cmap = plt.get_cmap('plasma')
         fig = plt.figure()
@@ -609,6 +714,82 @@ class Correle:
         Correle.Show_theThing(winners[:, -5:])
         return order
         #return np.argsort(-lihoood, axis=0)[:200, :].T
+    #ONLY USING SINGLE DATASET
+    @staticmethod
+    def Expand_system_experiment(raw, wyn):
+        raw = (raw - raw.mean(axis=0)) / raw.std(axis=0)
+        wyn = (wyn - wyn.mean(axis=0)) / wyn.std(axis=0)
+        raw = 1 / (1 + np.exp(-raw))
+        wyn = 1 / (1 + np.exp(-wyn))
+        token_id = []
+        for i in range(raw.shape[1] - 1):
+            for j in range(raw.shape[1] - 1 - i):
+                for k in (-1, 1):
+                    for l in (-1, 1):
+                        newone = np.zeros(raw.shape[1])
+                        newone[i] = k
+                        newone[j+i+1] = l
+                        token_id.append(newone)
+        goal_token = []
+        for i in range(wyn.shape[1]):
+            best_error = []
+            for token in token_id:
+                pred_test = raw * token
+                win_mask = (pred_test != 0)
+                winn = pred_test * win_mask  
+                winn = np.where(winn > 0, winn, winn + 1)
+                winn = np.min(winn, axis=1)
+                error = np.mean((np.log(1/winn-1) - np.log(1/wyn[:, i]-1)) ** 2) ** 0.5
+                best_error.append(error)
+            goal_token.append(token_id[np.argmin(best_error)])
+            print(goal_token[-1], np.min(best_error))
+        #nodes_win = np.array([raw * token for token in token_id])
+        nodes_win = raw[: , None, :] * np.array(token_id)[None, :, :]
+        nodes_win = np.where(nodes_win > 0, nodes_win, nodes_win + 1)
+        nodes_win = np.min(nodes_win, axis=2)
+        wyn_nodes = raw[: , None, :] * np.array(goal_token)[None, :, :]
+        wyn_nodes = np.where(wyn_nodes > 0, wyn_nodes, wyn_nodes + 1)
+        wyn_nodes = np.min(wyn_nodes, axis=2)
+        hidden = np.arange(nodes_win.shape[1])
+        print(np.array(goal_token).shape, wyn_nodes.shape)
+        print(nodes_win.shape)
+        while True:
+            true_token = []
+            for i in range(nodes_win.shape[1] - 1):
+                for j in range(nodes_win.shape[1] - 1 - i):
+                    for k in (-1, 1):
+                        for l in (-1, 1):
+                            newone = np.zeros(nodes_win.shape[1])
+                            newone[i] = k
+                            newone[j+i+1] = l
+                            true_token.append(newone)
+            print(len(true_token))
+            true_goal = []
+            for i in range(wyn.shape[1]):
+                best_error = []
+                for token in true_token:
+                    pred_test = nodes_win * token
+                    winn = np.where(pred_test > 0, pred_test, pred_test + 1)
+                    winn = np.min(winn, axis=1)
+                    error = np.mean((np.log(1/winn-1) - np.log(1/wyn[:, i]-1)) ** 2) ** 0.5
+                    best_error.append(error)
+                true_goal.append(true_token[np.argmin(best_error)])
+                print(true_goal[-1], np.min(best_error))
+            anihila = []
+            for i in range(len(hidden)):
+                if np.sum(np.abs(np.array(true_goal)[:, i])) < 1:
+                    anihila.append(i)
+            nodes_win = np.delete(nodes_win, anihila, axis=1)
+            hidden = np.delete(hidden, anihila)
+            print(hidden, anihila)
+            if len(anihila) < 1:
+                break
+        print("DONE")
+        input()
+        print(hidden)
+        for hide in hidden:
+            print(token_id[hide])
+        return True
 
 def test_accuracy(max_groups = 200, period = 100, members = 5, atribu = 3, umie = 2):
     for i in range(10, max_groups):
