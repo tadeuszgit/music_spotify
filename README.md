@@ -5,6 +5,7 @@ The core of the system. Analyse the structure
 create objects that contain all necessary data
 ### Coefficient
 | Name | Shape | Definition |
+| --- | --- | --- |
 | self.inp | (n, m) | input of n dataset with m attributes |
 | self.out | (n, k) | output of n dataset with k goals |
 | ones | (k, n, 1) | Bias |
