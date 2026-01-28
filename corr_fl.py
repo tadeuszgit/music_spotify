@@ -22,10 +22,10 @@ class Corrl:
             else:
                 A += LAMBDA
         
-        x = np.linalg.solve(A, b).squeeze(-1).T
+        m = np.linalg.solve(A, b).squeeze(-1).T
 
         if norm:
-            x[0, :] -= self.out.mean(axis=0)
-            x /= self.out.std(axis=0)
+            m[0, :] -= self.out.mean(axis=0)
+            m /= self.out.std(axis=0)
         
-        return x
+        return m
