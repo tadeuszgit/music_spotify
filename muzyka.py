@@ -3,7 +3,6 @@ from data_import import data_extraction
 from spotifyAPI import SpotifyAPI
 import numpy as np
 impo = data_extraction()
-
 raw, wynik = impo.Open_Multiple()
 analyse = impo.Open_Multiple(both=False, all_com=False)[:-1]
 
