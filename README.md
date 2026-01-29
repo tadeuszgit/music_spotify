@@ -18,3 +18,5 @@ create objects that contain all necessary data
 | LAMBDA | number | L2 Regulation |
 | LAMBDA | (k, m+1, m+1) | Modified Regulation |
 | norm | boolean | standarise the solution
+### Coeficient Regulation
+OVERALL IDEA: e^2^ = (xm-y)^2^ + ln(|m|^n^/energy)^2^
