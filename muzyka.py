@@ -2,10 +2,15 @@ from correlation import Correle as Corr
 from data_import import data_extraction
 from spotifyAPI import SpotifyAPI
 import numpy as np
+from corr_fl import Corrl
 impo = data_extraction()
 raw, wynik = impo.Open_Multiple()
 analyse = impo.Open_Multiple(both=False, all_com=False)[:-1]
-
+test = Corrl()
+m = test.Coefficient_for_all_dataset(LAMBDA=0)
+print("DONE!!!!!")
+print(m.shape)
+input()
 def season(name_play, pos, raw, wynik, analyse, s, name):
     order = []
     matrix = Corr.Prediction_naSterydach(raw, wynik, test=analyse, norm=True)
