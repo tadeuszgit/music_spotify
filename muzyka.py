@@ -7,10 +7,16 @@ impo = data_extraction()
 raw, wynik = impo.Open_Multiple()
 analyse = impo.Open_Multiple(both=False, all_com=False)[:-1]
 test = Corrl()
-m = test.Coefficient_for_all_dataset(LAMBDA=0)
+m = test.Coefficient_Regulation(LAMBDA=0, dim=1, energy=5, norm=True)
 print("DONE!!!!!")
-print(m.shape)
+print(np.sum(m, axis=1))
+print(np.sum(np.abs(m) < 0.01, axis=1))
+print(m.shape[1]/(m.shape[0]-1))
+print(np.sum(np.abs(m) < 0.01))
 input()
+for i in range(int(m.shape[1]/5)):
+    print(np.abs(m[:,i*5:i*5+5])>0.01)
+    input()
 def season(name_play, pos, raw, wynik, analyse, s, name):
     order = []
     matrix = Corr.Prediction_naSterydach(raw, wynik, test=analyse, norm=True)
