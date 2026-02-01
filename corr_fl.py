@@ -15,6 +15,7 @@ class Corrl:
             ipn = np.hstack([ones, inp])
             pre = ipn @ M
             if norm:
+                pre = np.clip(pre, -300, 300)
                 pre = 1 / (1 + np.exp(-pre))
             pred.append(pre)
         return np.vstack(pred)
@@ -33,11 +34,23 @@ class Corrl:
             else:
                 LAMBDA = np.eye(A.shape[1])[None] * LAMBDA.T[:,:,None]
                 A += LAMBDA
-        m = np.linalg.solve(A, b).squeeze(-1).T
+        #m = np.array([np.linalg.lstsq(A[i], b[i])[0] for i in range(A.shape[0])]).squeeze(-1).T
+        m = np.array([self.safe_lin(A[i], b[i]) for i in range(A.shape[0])]).squeeze(-1).T
+        #m = np.linalg.solve(A, b).squeeze(-1).T
         if norm:
             m[0, :] -= self.out.mean(axis=0)
-            m /= self.out.std(axis=0)
+            stds = self.out.std(axis=0)
+            stds = np.where(stds > 0.001, stds, 0.001)
+            m /= stds
         return m
+    @staticmethod
+    def safe_lin(A, b):
+        try:
+            #print("GOOOD")
+            return np.linalg.solve(A, b)
+        except np.linalg.LinAlgError:
+            #print("AVOIDING ERROR")
+            return np.linalg.lstsq(A, b)[0]
     def Coefficient_Regulation(self, energy = None, LAMBDA = None, dim = 2, norm = False):
         #self.inps, self.outs = self.raws_origin, self.wyniks_origin
         if LAMBDA is not None:
@@ -45,9 +58,9 @@ class Corrl:
                 goal_inp = np.hstack((0, np.std(np.vstack(self.inps), axis=0)))
                 goal_out = np.hstack([np.std(out, axis=0) for out in self.outs])
                 goal_out = np.where(goal_out == 0, 0.0001, goal_out)
-                print(goal_out)
+                #print(goal_out)
                 if energy is not None:
-                    for i in range(1000):
+                    for i in range(100):
                         m = self.Coefficient_for_all_dataset(LAMBDA=LAMBDA, norm=False)
                         TRUE_ENERGY = np.abs(m) ** dim * goal_inp[:, None] ** dim / (goal_out[None, :] ** dim)
                         TRUE_ENERGY_PERY = np.sum(TRUE_ENERGY, axis=0, keepdims=True) / energy
@@ -55,12 +68,13 @@ class Corrl:
                         stay = np.log(TRUE_ENERGY) / TRUE_ENERGY / energy + np.log(TRUE_ENERGY_PERY) / TRUE_ENERGY_PERY / energy
                         stay = stay * 2 * dim * goal_inp[:, None] ** dim / (goal_out[None, :] ** dim) * np.median(np.abs(m), keepdims=True, axis=1) ** (dim - 2)
                         stay = np.where(np.abs(stay) > 10**100, 10**100*np.sign(stay), stay)
-                        LAMBDA = stay * 0.01 + LAMBDA * 0.99
+                        LAMBDA = stay * 0.1 + LAMBDA * 0.9
+                        print(np.mean(TRUE_ENERGY_PERY), i)
                 else:
                     energy = 1
                     energi = 1
                     for j in range(10):
-                        for i in range(1000):
+                        for i in range(100):
                             m = self.Coefficient_for_all_dataset(LAMBDA=LAMBDA, norm=False)
                             TRUE_ENERGY = np.abs(m) ** dim * goal_inp[:, None] ** dim / (goal_out[None, :] ** dim)
                             #TRUE_ENERGY[is.]
@@ -75,13 +89,13 @@ class Corrl:
                             stay = stay * 2 * dim * goal_inp[:, None] ** dim / (goal_out[None, :] ** dim) * np.median(np.abs(m), keepdims=True, axis=1) ** (dim - 2)
                             #stay = 2 * np.log(TRUE_ENERGY) * dim / TRUE_ENERGY * goal_inp[:, None] ** dim / (goal_out[None, :] ** dim * energy) * np.abs(m) ** (dim - 2)
                             stay = np.where(np.abs(stay) > 10**100, 10**100*np.sign(stay), stay)
-                            LAMBDA = stay * 0.01 + LAMBDA * 0.99
-                            print(i)
+                            LAMBDA = stay * 0.1 + LAMBDA * 0.9
                         #energy = energy * 0.5 * (1 + TRUE_ENERGY_PERY)
                         #energi = energi * 0.5 + TRUE_ENERGY*energi*0.5
                         energy = energy * TRUE_ENERGY_PERY
                         energi = energi * TRUE_ENERGY
-                        print(energi)
+                        print(energi, j)
+                        #print(energi)
                         #print(np.mean(LAMBDA, keepdims=True, axis=1))
         return self.Coefficient_for_all_dataset(LAMBDA=LAMBDA, norm=norm)
     def Coefficient_for_all_dataset(self, LAMBDA = None, norm = False):
@@ -98,8 +112,8 @@ class Corrl:
         return np.hstack(m)
     def Get_tokens(self):
         self.tokens, self.datas
-        self.tokens = []
-        for data in self.datas[:-1]:
+        #self.tokens = []
+        for data in self.datas[-2:-1]:
             fea_n = data[0].shape[1]
             token = []
             for i in range(fea_n - 1):
@@ -115,15 +129,19 @@ class Corrl:
             self.tokens.append(token)
     def Get_dane_from_token(self):
         self.tokens, self.datas
-        self.datas = [self.datas[0], self.datas[-1]]
-        datas = [self.datas[0]]
-        for token in self.tokens:
+        #self.datas = [self.datas[0], self.datas[-1]]
+        datas = self.datas[:-1]
+        for token in self.tokens[-1:]:
+            print(np.vstack(datas[-1])[:, None, :].shape, np.array(token)[None, :, :].shape)
+            input()
             inp = np.vstack(datas[-1])[:, None, :] * np.array(token)[None, :, :]
+            
             inp = np.where(inp > 0, inp, inp+1)
             inp = np.min(inp, axis=2)
             self.inps, self.outs = [np.vstack(datas[-1])], [inp]
             print("MMMMM")
-            m = self.Coefficient_Regulation(LAMBDA = 0, norm=True)
+            m = self.Coefficient_Regulation(LAMBDA = 0, norm=True, energy=1)
+            print(np.sum(np.abs(m) < 0.01, axis=1))
             print("PREDICTION")
             inp = self.Predict(m, norm = True)
             datas.append([inp])
@@ -131,3 +149,28 @@ class Corrl:
         self.datas = []
         for data in datas:
             self.datas.append(data)
+    def Select_token(self):
+        for i in range(len(self.tokens)):
+            self.inps, self.outs = self.datas[-i-2], self.datas[-i-1]
+            if i == 0:
+                inps = []
+                k = 0
+                for out in self.outs:
+                    inps.append(self.inps[0][k:k+out.shape[0], :])
+                self.inps = inps
+            print("SELECTION")
+            winn = np.arange(len(self.tokens[i]))
+            while len(winn) > 10:
+                m = self.Coefficient_Regulation(LAMBDA = 0, norm = True, dim=1, energy=1)
+                kand = np.sum(np.abs(m) < 0.01, axis=1)
+                print(kand)
+                bord = min(np.max(kand),3)
+                win = kand[1:] < bord
+                winn = winn[win]
+                self.inps = [inp[:, win] for inp in self.inps]
+                print(winn)
+                print(m.shape, len(winn))
+            self.datas[-i-2] = self.inps
+            [print(len(np.vstack(dan))) for dan in self.datas]
+            print("DONE", i, len(self.tokens))
+            input()

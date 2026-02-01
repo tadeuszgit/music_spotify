@@ -7,8 +7,10 @@ impo = data_extraction()
 raw, wynik = impo.Open_Multiple()
 analyse = impo.Open_Multiple(both=False, all_com=False)[:-1]
 test = Corrl()
-test.Get_tokens()
-test.Get_dane_from_token()
+for i in range(10):
+    test.Get_tokens()
+    test.Get_dane_from_token()
+    test.Select_token()
 input("LOL")
 m = test.Coefficient_Regulation(LAMBDA=0, dim=1, norm=False)
 print("DONE!!!!!")
