@@ -7,7 +7,10 @@ class Corrl:
         impo = data_extraction()
         self.raws_origin, self.wyniks_origin = impo.Open_Multiple()
         self.tokens = []
-        self.datas = [self.raws_origin, self.wyniks_origin]
+        inp = np.vstack(self.raws_origin)
+        inp = (inp - inp.mean(axis=0))/inp.std(axis=0)
+        inp = 1 / (1 + np.exp(-inp))
+        self.datas = [[inp], self.wyniks_origin]
     def Predict(self, M, norm = False):
         pred = []
         for inp in self.inps:
@@ -55,6 +58,7 @@ class Corrl:
         #self.inps, self.outs = self.raws_origin, self.wyniks_origin
         if LAMBDA is not None:
             if LAMBDA == 0:
+                LAMBDA = 1
                 goal_inp = np.hstack((0, np.std(np.vstack(self.inps), axis=0)))
                 goal_out = np.hstack([np.std(out, axis=0) for out in self.outs])
                 goal_out = np.where(goal_out == 0, 0.0001, goal_out)
@@ -69,7 +73,7 @@ class Corrl:
                         stay = stay * 2 * dim * goal_inp[:, None] ** dim / (goal_out[None, :] ** dim) * np.median(np.abs(m), keepdims=True, axis=1) ** (dim - 2)
                         stay = np.where(np.abs(stay) > 10**100, 10**100*np.sign(stay), stay)
                         LAMBDA = stay * 0.1 + LAMBDA * 0.9
-                        print(np.mean(TRUE_ENERGY_PERY), i)
+                    #print(np.mean(TRUE_ENERGY_PERY), i)
                 else:
                     energy = 1
                     energi = 1
@@ -94,7 +98,7 @@ class Corrl:
                         #energi = energi * 0.5 + TRUE_ENERGY*energi*0.5
                         energy = energy * TRUE_ENERGY_PERY
                         energi = energi * TRUE_ENERGY
-                        print(energi, j)
+                        #print(energi, j)
                         #print(energi)
                         #print(np.mean(LAMBDA, keepdims=True, axis=1))
         return self.Coefficient_for_all_dataset(LAMBDA=LAMBDA, norm=norm)
@@ -110,67 +114,93 @@ class Corrl:
                 m.append(self.Coefficient(LAMBDA=LAMBDA[:, k:k+self.out.shape[1]], norm=norm))
                 k += self.out.shape[1]
         return np.hstack(m)
-    def Get_tokens(self):
+    def Get_tokens(self, pos = None):
         self.tokens, self.datas
         #self.tokens = []
-        for data in self.datas[-2:-1]:
-            fea_n = data[0].shape[1]
-            token = []
-            for i in range(fea_n - 1):
-                for j in range(fea_n - 1 - i):
-                    for k in (-1, 1):
-                        for l in (-1, 1):
-                            newone = np.zeros(fea_n)
-                            newone[i] = k
-                            newone[i+j+1] = l
-                            token.append(newone)
-            print("TOKEN!!!!")
-            print(len(token))
-            self.tokens.append(token)
-    def Get_dane_from_token(self):
+        if pos is None:
+            fea_n = self.datas[-2][0].shape[1]
+        else:
+            fea_n = self.datas[pos][0].shape[1]
+        token = []
+        for i in range(fea_n - 1):
+            for j in range(fea_n - 1 - i):
+                for k in (-1, 1):
+                    for l in (-1, 1):
+                        newone = np.zeros(fea_n)
+                        newone[i] = k
+                        newone[i+j+1] = l
+                        token.append(newone)
+        print("TOKEN!!!!")
+        print(len(token))
+        if pos is None:
+            self.tokens.append(np.array(token))
+        else:
+            self.tokens[pos] = token
+    def Get_dane_from_token(self, pos = None):
         self.tokens, self.datas
         #self.datas = [self.datas[0], self.datas[-1]]
         datas = self.datas[:-1]
-        for token in self.tokens[-1:]:
-            print(np.vstack(datas[-1])[:, None, :].shape, np.array(token)[None, :, :].shape)
-            input()
-            inp = np.vstack(datas[-1])[:, None, :] * np.array(token)[None, :, :]
-            
-            inp = np.where(inp > 0, inp, inp+1)
-            inp = np.min(inp, axis=2)
-            self.inps, self.outs = [np.vstack(datas[-1])], [inp]
-            print("MMMMM")
-            m = self.Coefficient_Regulation(LAMBDA = 0, norm=True, energy=1)
-            print(np.sum(np.abs(m) < 0.01, axis=1))
-            print("PREDICTION")
-            inp = self.Predict(m, norm = True)
+        if pos is None:
+            token = self.tokens[-1]
+            data = datas[-1]
+        else:
+            token = self.tokens[pos]
+            data = datas[pos]
+
+        inp = np.vstack(data)[:, None, :] * np.array(token)[None, :, :]
+        inp = np.where(inp > 0, inp, inp+1)
+        inp = np.min(inp, axis=2)
+        self.inps, self.outs = [np.vstack(datas[-1])], [inp]
+        print("MMMMM")
+        m = self.Coefficient_Regulation(LAMBDA = 0, norm=True, energy=1)
+        print(np.sum(np.abs(m) < 0.01, axis=1))
+        print("PREDICTION")
+        inp = self.Predict(m, norm = True)
+
+        if pos is None:
             datas.append([inp])
+        else:
+            datas[pos] = [inp]
         datas.append(self.datas[-1])
         self.datas = []
         for data in datas:
             self.datas.append(data)
-    def Select_token(self):
-        for i in range(len(self.tokens)):
-            self.inps, self.outs = self.datas[-i-2], self.datas[-i-1]
-            if i == 0:
-                inps = []
-                k = 0
-                for out in self.outs:
-                    inps.append(self.inps[0][k:k+out.shape[0], :])
-                self.inps = inps
-            print("SELECTION")
-            winn = np.arange(len(self.tokens[i]))
-            while len(winn) > 10:
-                m = self.Coefficient_Regulation(LAMBDA = 0, norm = True, dim=1, energy=1)
-                kand = np.sum(np.abs(m) < 0.01, axis=1)
-                print(kand)
-                bord = min(np.max(kand),3)
-                win = kand[1:] < bord
-                winn = winn[win]
-                self.inps = [inp[:, win] for inp in self.inps]
-                print(winn)
-                print(m.shape, len(winn))
-            self.datas[-i-2] = self.inps
-            [print(len(np.vstack(dan))) for dan in self.datas]
-            print("DONE", i, len(self.tokens))
-            input()
+    def Select_token(self, pos):
+        inps, self.outs = self.datas[pos+1], self.datas[pos+2]
+        if pos == len(self.tokens) - 1:
+            inp = []
+            k = 0
+            for out in self.outs:
+                inp.append(inps[0][k:k+out.shape[0], :])
+            inps = inp
+        winn = np.arange(10)
+        old_winn = np.arange(10, 20)
+        comp = np.arange(10, inps[0].shape[1])
+        while not np.array_equal(old_winn, winn):
+            old_winn = winn.copy()
+            #old_winn = np.array([win for win in winn])
+            for i in range(len(winn)):
+                power = []
+                for j in range(len(comp) + 1):
+                    self.inps = [inp[:, winn] for inp in inps]
+                    goal_inp = np.hstack((0, np.std(np.vstack(self.inps), axis=0)))
+                    goal_out = np.hstack([np.std(out, axis=0) for out in self.outs])
+                    goal_out = np.where(goal_out == 0, 0.0001, goal_out)
+                    m = self.Coefficient_Regulation(LAMBDA = 0, energy = 1, norm = True, dim=1)
+                    TRUE_ENERGY = np.abs(m) * goal_inp[:, None] / (goal_out[None, :])
+                    TRUE_ENERGY = np.sum(TRUE_ENERGY, axis=0)
+                    TRUE_ENERGY = np.mean(np.log(TRUE_ENERGY) ** 2)
+                    power.append(TRUE_ENERGY)
+                    #print(power[-1], winn[i], i, np.min(power))
+                    k = j % len(comp)
+                    winn[i], comp[k] = comp[k], winn[i]
+                top = np.argmin(power)
+                if top > 0:
+                    top = top % len(comp)
+                    winn[i], comp[top] = comp[top], winn[i]
+                print(winn, i, np.min(power), top)
+            print()
+        self.tokens[pos] = self.tokens[pos][winn, :]
+        self.datas[pos+1] = [inp[:, winn] for inp in inps]
+        print(self.tokens[pos])
+        print(pos)
