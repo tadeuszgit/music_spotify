@@ -6,11 +6,32 @@ class Corrl:
     def __init__(self):
         impo = data_extraction()
         self.raws_origin, self.wyniks_origin = impo.Open_Multiple()
-        self.tokens = []
+        self.analyse = impo.Open_Multiple(both=False, all_com=False)[:-2]
+        self.tokens = [np.array([[0,1,0,0,0,0,0,1,0,0,0,0],
+                                 [1,0,0,0,0,0,-1,0,0,0,0,0],
+                                 [0,1,1,0,0,0,0,0,0,0,0,0],
+                                 [0,0,0,0,0,-1,0,0,0,0,0,-1],
+                                 [0,0,0,0,0,0,0,-1,0,0,0,1],
+                                 [-1,0,0,0,0,1,0,0,0,0,0,0],
+                                 [0,0,0,-1,0,-1,0,0,0,0,0,0],
+                                 [0,0,0,0,0,0,0,1,0,1,0,0],
+                                 [-1,0,0,0,0,-1,0,0,0,0,0,0],
+                                 [0,0,0,0,0,0,-1,0,0,0,0,-1],])]
+        self.tokens.append(np.array([[0,0,0,0,0,0,0,0,1,1],
+                                     [0,0,0,-1,0,0,0,0,-1,0],
+                                     [0,-1,0,0,0,0,0,0,-1,0],
+                                     [0,0,0,0,0,0,1,0,0,1],
+                                     [-1,0,0,0,0,0,0,0,1,0],
+                                     [-1,0,0,0,0,0,0,0,0,-1],
+                                     [0,-1,0,0,0,0,0,0,0,-1],
+                                     [0,-1,0,-1,0,0,0,0,0,0],
+                                     [0,0,0,0,0,0,0,0,1,-1],
+                                     [-1,0,0,1,0,0,0,0,0,0],]))
         inp = np.vstack(self.raws_origin)
         inp = (inp - inp.mean(axis=0))/inp.std(axis=0)
         inp = 1 / (1 + np.exp(-inp))
         self.datas = [[inp], self.wyniks_origin]
+        self.m = []
     def Predict(self, M, norm = False):
         pred = []
         for inp in self.inps:
@@ -22,6 +43,16 @@ class Corrl:
                 pre = 1 / (1 + np.exp(-pre))
             pred.append(pre)
         return np.vstack(pred)
+    def test(self):
+        self.inps = self.analyse
+        for m in self.m:
+            self.inps = [self.Predict(m, norm=True)]
+        k = 0
+        sol = []
+        for ana in self.analyse:
+            sol.append(self.inps[0][k:k+ana.shape[0], :])
+            k += ana.shape[0]
+        return sol
     def Coefficient(self, LAMBDA, norm = False):
         #self.inp, self.out
         inp = np.repeat(self.inp[np.newaxis, :, :], self.out.shape[1], axis=0)
@@ -135,13 +166,14 @@ class Corrl:
         if pos is None:
             self.tokens.append(np.array(token))
         else:
-            self.tokens[pos] = token
+            self.tokens[pos] = np.array(token)
     def Get_dane_from_token(self, pos = None):
         self.tokens, self.datas
         #self.datas = [self.datas[0], self.datas[-1]]
         datas = self.datas[:-1]
         if pos is None:
-            token = self.tokens[-1]
+            p = len(self.tokens) - len(datas) + 1
+            token = self.tokens[-p]
             data = datas[-1]
         else:
             token = self.tokens[pos]
@@ -150,7 +182,7 @@ class Corrl:
         inp = np.vstack(data)[:, None, :] * np.array(token)[None, :, :]
         inp = np.where(inp > 0, inp, inp+1)
         inp = np.min(inp, axis=2)
-        self.inps, self.outs = [np.vstack(datas[-1])], [inp]
+        self.inps, self.outs = [np.vstack(data)], [inp]
         print("MMMMM")
         m = self.Coefficient_Regulation(LAMBDA = 0, norm=True, energy=1)
         print(np.sum(np.abs(m) < 0.01, axis=1))
@@ -159,8 +191,11 @@ class Corrl:
 
         if pos is None:
             datas.append([inp])
+            self.m.append(m)
         else:
-            datas[pos] = [inp]
+            datas[pos+1] = [inp]
+            self.m[pos] = m
+        print(len(datas) - 1)
         datas.append(self.datas[-1])
         self.datas = []
         for data in datas:
@@ -173,11 +208,19 @@ class Corrl:
             for out in self.outs:
                 inp.append(inps[0][k:k+out.shape[0], :])
             inps = inp
+        else:
+            self.outs = [-np.log(1/out-1) for out in self.outs]
         winn = np.arange(10)
         old_winn = np.arange(10, 20)
         comp = np.arange(10, inps[0].shape[1])
+        count = 0
+        previous_energy = 100
+        print(len(inps), len(self.outs))
+        print(inps[0].shape, self.outs[0].shape)
         while not np.array_equal(old_winn, winn):
             old_winn = winn.copy()
+            new_winn = []
+            new_energy = []
             #old_winn = np.array([win for win in winn])
             for i in range(len(winn)):
                 power = []
@@ -197,10 +240,40 @@ class Corrl:
                 top = np.argmin(power)
                 if top > 0:
                     top = top % len(comp)
-                    winn[i], comp[top] = comp[top], winn[i]
-                print(winn, i, np.min(power), top)
+                    #winn[i], comp[top] = comp[top], winn[i]
+                    new_winn.append(comp[top])
+                    #count = 0
+                else:
+                    new_winn.append(winn[i])
+                    #count += 1
+                if count > 8:
+                    break
+                new_energy.append(np.min(power))
+                comp = np.array([i for i in comp if i not in new_winn])
+                print(winn, i, np.min(power), top, new_winn[-1])
+            new_energy_s = np.argsort(new_energy)[::-1]
+            for i in range(len(new_energy)):
+                cand = new_energy_s[i:]
+                test = [new_winn[i] if i in cand else winn[i] for i in range(len(winn))]
+                self.inps = [inp[:, test] for inp in inps]
+                goal_inp = np.hstack((0, np.std(np.vstack(self.inps), axis=0)))
+                goal_out = np.hstack([np.std(out, axis=0) for out in self.outs])
+                goal_out = np.where(goal_out == 0, 0.0001, goal_out)
+                m = self.Coefficient_Regulation(LAMBDA = 0, energy = 1, norm = True, dim=1)
+                TRUE_ENERGY = np.abs(m) * goal_inp[:, None] / (goal_out[None, :])
+                TRUE_ENERGY = np.sum(TRUE_ENERGY, axis=0)
+                TRUE_ENERGY = np.mean(np.log(TRUE_ENERGY) ** 2)
+                print(test, TRUE_ENERGY)
+                if TRUE_ENERGY < np.max(new_energy):
+                    previous_energy = TRUE_ENERGY
+                    winn = np.array(test)
+                    break
+            #winn = np.array(new_winn)
+            #comp = np.array([i for i in range(inps[0].shape[1]) if i not in winn])
+            print(winn, previous_energy)
             print()
         self.tokens[pos] = self.tokens[pos][winn, :]
-        self.datas[pos+1] = [inp[:, winn] for inp in inps]
+        self.datas[pos+1] = [np.vstack([inp[:, winn] for inp in inps])]
+        [print(len(data)) for data in self.datas]
         print(self.tokens[pos])
         print(pos)

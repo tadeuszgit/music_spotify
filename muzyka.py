@@ -7,39 +7,54 @@ impo = data_extraction()
 raw, wynik = impo.Open_Multiple()
 analyse = impo.Open_Multiple(both=False, all_com=False)[:-1]
 test = Corrl()
-test.Get_tokens()
+#test.Get_tokens(pos = 0)
 test.Get_dane_from_token()
-test.Select_token(pos = 0)
-test.Get_tokens()
 test.Get_dane_from_token()
-test.Select_token(pos = 1)
-test.Get_tokens()
-test.Get_dane_from_token()
-test.Select_token(pos = 2)
-test.Get_tokens(pos = 1)
-test.Get_dane_from_token(pos = 1)
-test.Select_token(pos = 1)
-test.Get_tokens(pos = 0)
-test.Get_dane_from_token(pos = 0)
-test.Select_token(pos = 0)
-test.Get_tokens(pos = 1)
-test.Get_dane_from_token(pos = 1)
-test.Select_token(pos = 1)
-test.Get_tokens(pos = 2)
-test.Get_dane_from_token(pos = 2)
-test.Select_token(pos = 2)
-input("LOL")
-m = test.Coefficient_Regulation(LAMBDA=0, dim=1, norm=False)
-print("DONE!!!!!")
-Corr.Show_theThing(test.Predict(m)[:, -5:])
-print(np.sum(m, axis=1))
-print(np.sum(np.abs(m) < 0.01, axis=1))
-print(m.shape[1]/(m.shape[0]-1))
-print(np.sum(np.abs(m) < 0.01))
+inps, test.outs = test.datas[-2], test.datas[-1]
+inp = []
+k = 0
+for out in test.outs:
+    inp.append(inps[0][k:k+out.shape[0], :])
+inps = inp
+test.inps = inps
+goal_inp = np.hstack((0, np.std(np.vstack(test.inps), axis=0)))
+goal_out = np.hstack([np.std(out, axis=0) for out in test.outs])
+goal_out = np.where(goal_out == 0, 0.0001, goal_out)
+Corr.Show_theThing(test.datas[-3][0][-80:, :])
+print("FIRST HIDDEN LAYER")
 input()
-for i in range(int(m.shape[1]/5)):
-    print(np.abs(m[:,i*5:i*5+5])>0.01)
-    input()
+Corr.Show_theThing(test.datas[-2][0][-80:, :])
+print("SECOND HIDDEN LAYER")
+input()
+test.m.append(test.Coefficient_Regulation(LAMBDA=0, energy = 1, dim=2, norm=True))
+"""yea = test.test()
+print(len(yea))
+[print(ye.shape) for ye in yea]
+input()
+#TRUE_ENERGY = np.mean(np.log(TRUE_ENERGY) ** 2)
+wyn = test.Predict(test.m[-1], norm=False)
+print(wyn.shape)
+Corr.Show_theThing(wyn[-80:, -5:])
+TRUE_ENERGY = np.abs(test.m[-1]) * goal_inp[:, None] / (goal_out[None, :])
+TRUE_ENERGY = np.sum(TRUE_ENERGY, axis=0)
+print(TRUE_ENERGY)
+print(goal_inp.shape, goal_out.shape, test.m[-1].shape)
+goal_inp = np.hstack((0, np.std(np.vstack(test.datas[-3]), axis=0)))
+goal_out = np.hstack([np.std(out, axis=0) for out in test.datas[-2]])
+goal_out = np.where(goal_out == 0, 0.0001, goal_out)
+print(goal_inp.shape, goal_out.shape, test.m[-2].shape)
+TRUE_ENERGY = np.abs(test.m[-2]) * goal_inp[:, None] / (goal_out[None, :])
+TRUE_ENERGY = np.sum(TRUE_ENERGY, axis=0)
+print(TRUE_ENERGY)
+goal_inp = np.hstack((0, np.std(np.vstack(test.datas[-4]), axis=0)))
+goal_out = np.hstack([np.std(out, axis=0) for out in test.datas[-3]])
+goal_out = np.where(goal_out == 0, 0.0001, goal_out)
+TRUE_ENERGY = np.abs(test.m[-3]) * goal_inp[:, None] / (goal_out[None, :])
+TRUE_ENERGY = np.sum(TRUE_ENERGY, axis=0)
+print(TRUE_ENERGY)
+input("LOL")"""
+
+
 def season(name_play, pos, raw, wynik, analyse, s, name):
     order = []
     matrix = Corr.Prediction_naSterydach(raw, wynik, test=analyse, norm=True)
@@ -249,7 +264,7 @@ for i in range(1):
     #input()
     #Corr.Show_theThing(pred[:, -5:])
     #print(np.mean(np.mean((pred[:, -5:] - wynik[-1])**2, axis=0)**0.5/np.std(wynik[-1],axis=0)))"""
-Corr.Expand_system_experiment(raw[-1], wynik[-1])
+"""Corr.Expand_system_experiment(raw[-1], wynik[-1])
 gfd
 test_out = np.array(wynik[-1][:, -1])
 test_out = (test_out - test_out.mean()) / test_out.std()
@@ -324,7 +339,7 @@ for best in best_sorted[:100]:
     print("ERROR", error, error2)
     print("NOISE ERROR", noise_error, noise_error2)
     input("NEXT")
-hj
+hj"""
 
 
 """lolly=[]
@@ -383,7 +398,7 @@ print(np.median(lolly), np.mean(lolly))"""
 #Corr.Show_theThing(np.round(pred*100))
 #Corr.Show_theThing(np.round(pred[:, 4::5]*100)/100)
 #print(pred.shape)
-s = SpotifyAPI()
+#s = SpotifyAPI()
 
 #print(lol.shape)
 name = ['Sezon 1 chapter 1','Sezon 1 chapter 2','Sezon 1 chapter 3','Sezon 1 chapter 4','Sezon 1 chapter 5','Sezon 2 chapter 1','Sezon 2 chapter 2','Sezon 2 chapter 3','Sezon 2 chapter 4','Sezon 3 chapter 1','Sezon 3 chapter 2', 'Sezon 3 chapter 3', '25 Sezon 9 chapter 1', '25 Sezon 10 chapter 1', '25 Sezon 10 chapter 2', '25 Sezon 10 chapter 3', '25 Sezon 10 chapter 4', '25 Sezon 11 chapter 1', '25 Sezon 11 chapter 2', '25 Sezon 11 chapter 3', '25 Sezon 11 chapter 4', '25 Sezon 12 chapter 1', '25 Sezon 12 chapter 2', f"Lumyn's Mixtape"]
@@ -402,7 +417,7 @@ pos = [0,5,9,12,17,21]
 amount = [45,35,26,21,17,13,9,8,6,5,3,3,3,1,2,0,1,1,0,0,0,1]
 amount = [10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10]
 #s
-k = 50
+k = 10
 print("SPECIAL SONGS")
 special = []
 force = np.arange(len(name))
@@ -417,8 +432,12 @@ while len(special) < k:
 print(special)
 print(max(special))
 input("SPECIAL")
-matrix = Corr.Prediction_naSterydach(raw[:], wynik[:], norm=True, test=analyse[-len(name):])
+#matrix = Corr.Prediction_naSterydach(raw[:], wynik[:], norm=True, test=analyse[-len(name):])
+matrix = test.test()[-len(name):]
+Corr.Show_theThing(matrix[-1][:, -5:])
+print(np.vstack(matrix).shape)
 distance = Corr.distance_matrix(matrix=np.vstack(matrix))
+print(distance.shape, "DASD")
 #Corr.Show_theThing(distance[:, -3:-2])
 #Corr.Show_theThing(distance[np.argsort(distance[:, -4])[:100], -4:-3])
 #input("DISTANCE")
@@ -445,7 +464,7 @@ input()
 for ode in order:
     Corr.Show_theThing(np.vstack(matrix)[ode, -5:])
     input()
-name_new_playlists=['Moc', 'Intro', 'Lepszy', 'Pop', 'Yes']
+name_new_playlists=['Moc1', 'Intro1', 'Lepszy1', 'Pop1', 'Yes1']
 s.create_new_playlists(order, name, name_new_playlists=name_new_playlists)
 kl
 for i in range(0):
