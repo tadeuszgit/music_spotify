@@ -7,9 +7,11 @@ class Corrl:
         impo = data_extraction()
         self.impo_token = data_extraction(raw='data\\token\\')
         self.tokens = self.impo_token.Open_Multiple(both=False, all_com=False)
+        print(self.tokens)
+        #input()
         self.raws_origin, self.wyniks_origin = impo.Open_Multiple()
         self.analyse = impo.Open_Multiple(both=False, all_com=False)[:-2]
-        self.tokens = [np.array([[0,0,0,0,0,0,0,0,0,-1,1,0],
+        """self.tokens = [np.array([[0,0,0,0,0,0,0,0,0,-1,1,0],
                                  [0,0,-1,0,0,0,0,0,0,0,0,1],
                                  [0,0,0,0,0,0,-1,0,0,0,0,-1],
                                  [0,0,0,0,0,0,0,0,0,0,-1,1],
@@ -39,21 +41,23 @@ class Corrl:
                                      [1,0,0,1,0,0,0,0,0,0],
                                      [0,0,0,0,0,0,0,0,1,-1],
                                      [0,0,1,0,0,0,-1,0,0,0],]))
-        self.tokens.append(np.array([[0,0,0,-1,-1,0,0,0,0,0],
-                                     [1,0,0,0,0,0,0,0,-1,0],
-                                     [0,0,0,0,1,-1,0,0,0,0],
-                                     [0,0,0,0,0,-1,0,-1,0,0],
-                                     [0,0,-1,1,0,0,0,0,0,0],
-                                     [0,0,0,-1,1,0,0,0,0,0],
-                                     [1,0,-1,0,0,0,0,0,0,0],
-                                     [0,-1,0,0,0,0,-1,0,0,0],
-                                     [0,1,0,-1,0,0,0,0,0,0],
-                                     [0,0,1,0,0,0,0,0,-1,0],]))
+        self.tokens.append(np.array([[1,0,0,0,1,0,0,0,0,0],
+                                     [0,0,1,0,0,0,0,0,1,0],
+                                     [0,0,0,0,0,0,1,0,-1,0],
+                                     [0,0,0,0,0,0,1,1,0,0],
+                                     [0,0,-1,0,0,1,0,0,0,0],
+                                     [0,0,0,1,0,1,0,0,0,0],
+                                     [0,1,0,0,0,-1,0,0,0,0],
+                                     [0,0,0,0,0,-1,1,0,0,0],
+                                     [0,-1,1,0,0,0,0,0,0,0],
+                                     [0,0,0,-1,0,-1,0,0,0,0],]))"""
         inp = np.vstack(self.raws_origin)
         inp = (inp - inp.mean(axis=0))/inp.std(axis=0)
         inp = 1 / (1 + np.exp(-inp))
         self.datas = [[inp], self.wyniks_origin]
         self.m = []
+        for i in range(len(self.tokens)):
+            self.Get_dane_from_token()
     def Predict(self, M, norm = False):
         pred = []
         for inp in self.inps:

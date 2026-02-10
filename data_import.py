@@ -66,9 +66,10 @@ class data_extraction:
             for dane in row:
                 txt += str(dane) + '\t'
             txt += '\n'
-        with open(self.result + filename, 'w') as file:
+        with open(self.rawnes + filename, 'w') as file:
             file.write(txt)
     def Save_all(self, datas):
-        filenames = self.file_res
+        filenames = self.file_raw
+        print(filenames, "SAVING")
         for filename, data in zip(filenames, datas):
             self.Save_Input(filename, data)
