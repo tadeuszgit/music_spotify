@@ -10,6 +10,17 @@ test = Corrl()
 #test.Get_tokens(pos = 0)
 test.Get_dane_from_token()
 test.Get_dane_from_token()
+test.Get_dane_from_token()
+test.Get_dane_from_token()
+test.Get_tokens(pos = 3)
+test.Get_dane_from_token(pos = 3)
+test.Select_token(pos = 3)
+input(f"Finished processing layer {3}")
+for i in range(4):
+    test.Get_tokens(pos = i)
+    test.Get_dane_from_token(pos = i)
+    test.Select_token(pos = i)
+    input(f"Finished processing layer {i}")
 inps, test.outs = test.datas[-2], test.datas[-1]
 inp = []
 k = 0

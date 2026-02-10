@@ -60,3 +60,15 @@ class data_extraction:
             raw = np.array(raw)
             raws.append(raw)
         return raws
+    def Save_Input(self, filename, data):
+        txt = ''
+        for row in data:
+            for dane in row:
+                txt += str(dane) + '\t'
+            txt += '\n'
+        with open(self.result + filename, 'w') as file:
+            file.write(txt)
+    def Save_all(self, datas):
+        filenames = self.file_res
+        for filename, data in zip(filenames, datas):
+            self.Save_Input(filename, data)
