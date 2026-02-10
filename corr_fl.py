@@ -227,15 +227,19 @@ class Corrl:
         for data in datas:
             self.datas.append(data)
     def Select_token(self, pos):
-        inps, self.outs = self.datas[pos+1], self.datas[pos+2]
+        inpinps, inps, outs = self.datas[pos], self.datas[pos+1], self.datas[pos+2]
         if pos == len(self.tokens) - 1:
+            inpinp = []
             inp = []
             k = 0
             for out in self.outs:
                 inp.append(inps[0][k:k+out.shape[0], :])
+                inpinp.append(inpinps[0][k:k+out.shape[0], :])
+                k += out.shape[0]
             inps = inp
+            inpinps = inpinp
         else:
-            self.outs = [-np.log(1/out-1) for out in self.outs]
+            outs = [-np.log(1/out-1) for out in self.outs]
         winn = np.arange(10)
         old_winn = np.arange(10, 20)
         comp = np.arange(10, inps[0].shape[1])
@@ -252,6 +256,7 @@ class Corrl:
                 power = []
                 for j in range(len(comp) + 1):
                     self.inps = [inp[:, winn] for inp in inps]
+                    self.outs = outs
                     goal_inp = np.hstack((0, np.std(np.vstack(self.inps), axis=0)))
                     goal_out = np.hstack([np.std(out, axis=0) for out in self.outs])
                     goal_out = np.where(goal_out == 0, 0.0001, goal_out)
@@ -259,6 +264,17 @@ class Corrl:
                     TRUE_ENERGY = np.abs(m) * goal_inp[:, None] / (goal_out[None, :])
                     TRUE_ENERGY = np.sum(TRUE_ENERGY, axis=0)
                     TRUE_ENERGY = np.mean(np.log(TRUE_ENERGY) ** 2)
+
+                    self.inps = inpinps
+                    self.outs = [-np.log(1/inp[:, winn]-1) for inp in inps]
+                    goal_inp = np.hstack((0, np.std(np.vstack(self.inps), axis=0)))
+                    goal_out = np.hstack([np.std(out, axis=0) for out in self.outs])
+                    goal_out = np.where(goal_out == 0, 0.0001, goal_out)
+                    m = self.Coefficient_Regulation(LAMBDA = 0, energy = 1, norm = True, dim=1)
+                    TRUE_ENERGY2 = np.abs(m) * goal_inp[:, None] / (goal_out[None, :])
+                    TRUE_ENERGY2 = np.sum(TRUE_ENERGY2, axis=0)
+                    TRUE_ENERGY2 = np.mean(np.log(TRUE_ENERGY2) ** 2)
+                    TRUE_ENERGY += TRUE_ENERGY2
                     power.append(TRUE_ENERGY)
                     #print(power[-1], winn[i], i, np.min(power))
                     k = j % len(comp)
@@ -281,7 +297,9 @@ class Corrl:
             for i in range(len(new_energy)):
                 cand = new_energy_s[i:]
                 test = [new_winn[i] if i in cand else winn[i] for i in range(len(winn))]
+
                 self.inps = [inp[:, test] for inp in inps]
+                self.outs = outs
                 goal_inp = np.hstack((0, np.std(np.vstack(self.inps), axis=0)))
                 goal_out = np.hstack([np.std(out, axis=0) for out in self.outs])
                 goal_out = np.where(goal_out == 0, 0.0001, goal_out)
@@ -289,6 +307,17 @@ class Corrl:
                 TRUE_ENERGY = np.abs(m) * goal_inp[:, None] / (goal_out[None, :])
                 TRUE_ENERGY = np.sum(TRUE_ENERGY, axis=0)
                 TRUE_ENERGY = np.mean(np.log(TRUE_ENERGY) ** 2)
+
+                self.inps = inpinps
+                self.outs = [-np.log(1/inp[:, test]-1) for inp in inps]
+                goal_inp = np.hstack((0, np.std(np.vstack(self.inps), axis=0)))
+                goal_out = np.hstack([np.std(out, axis=0) for out in self.outs])
+                goal_out = np.where(goal_out == 0, 0.0001, goal_out)
+                m = self.Coefficient_Regulation(LAMBDA = 0, energy = 1, norm = True, dim=1)
+                TRUE_ENERGY2 = np.abs(m) * goal_inp[:, None] / (goal_out[None, :])
+                TRUE_ENERGY2 = np.sum(TRUE_ENERGY2, axis=0)
+                TRUE_ENERGY2 = np.mean(np.log(TRUE_ENERGY2) ** 2)
+                TRUE_ENERGY += TRUE_ENERGY2
                 print(test, TRUE_ENERGY)
                 if TRUE_ENERGY < np.max(new_energy):
                     previous_energy = TRUE_ENERGY

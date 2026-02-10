@@ -9,11 +9,12 @@ analyse = impo.Open_Multiple(both=False, all_com=False)[:-1]
 test = Corrl()
 test.impo_token.Save_all(test.tokens)
 input("Tokens saved")
-for i in range(10):
-    for i in range(4):
-        test.Get_tokens(pos = i)
-        test.Get_dane_from_token(pos = i)
-        test.Select_token(pos = i)
+for i in range(50):
+    j = (i+1) % 4
+    print("DOING", i + 1, j)
+    test.Get_tokens(pos = j)
+    test.Get_dane_from_token(pos = j)
+    test.Select_token(pos = j)
 inps, test.outs = test.datas[-2], test.datas[-1]
 inp = []
 k = 0
