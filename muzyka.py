@@ -10,8 +10,8 @@ test = Corrl()
 test.impo_token.Save_all(test.tokens)
 input("Tokens saved")
 for i in range(50):
-    j = (i+1) % 4
-    print("DOING", i + 1, j)
+    j = (i+3) % 4
+    print("DOING", i + 3, j)
     test.Get_tokens(pos = j)
     test.Get_dane_from_token(pos = j)
     test.Select_token(pos = j)

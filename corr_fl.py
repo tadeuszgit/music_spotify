@@ -7,7 +7,9 @@ class Corrl:
         impo = data_extraction()
         self.impo_token = data_extraction(raw='data\\token\\')
         self.tokens = self.impo_token.Open_Multiple(both=False, all_com=False)
+        self.winns = self.Get_winns()
         print(self.tokens)
+        print(self.winns)
         #input()
         self.raws_origin, self.wyniks_origin = impo.Open_Multiple()
         self.analyse = impo.Open_Multiple(both=False, all_com=False)[:-2]
@@ -58,6 +60,19 @@ class Corrl:
         self.m = []
         for i in range(len(self.tokens)):
             self.Get_dane_from_token()
+    def Get_winns(self):
+        winns = []
+        for token in self.tokens:
+            winn = []
+            for id in token:
+                ind = [i for i in range(len(id)) if id[i] != 0]
+                kon = ind[1] - ind[0] - 1 + (2*len(id) - ind[0]) / 2 * (ind[0] + 1) - len(id)
+                kon *= 4
+                ind = [(kid + 1)/2 for kid in id if kid != 0]
+                kon += ind[0] * 2 + ind[1]
+                winn.append(int(kon))
+            winns.append(winn)
+        return winns
     def Predict(self, M, norm = False):
         pred = []
         for inp in self.inps:
@@ -232,21 +247,24 @@ class Corrl:
             inpinp = []
             inp = []
             k = 0
-            for out in self.outs:
+            for out in outs:
                 inp.append(inps[0][k:k+out.shape[0], :])
                 inpinp.append(inpinps[0][k:k+out.shape[0], :])
                 k += out.shape[0]
             inps = inp
             inpinps = inpinp
         else:
-            outs = [-np.log(1/out-1) for out in self.outs]
-        winn = np.arange(10)
+            outs = [-np.log(1/out-1) for out in outs]
+        loginps = [-np.log(1/inp-1) for inp in inps]
+        #winn = np.arange(10)
+        winn = np.array(self.winns[pos])
         old_winn = np.arange(10, 20)
-        comp = np.arange(10, inps[0].shape[1])
+        comp = np.arange(0, inps[0].shape[1])
+        comp = np.array([i for i in comp if i not in winn])
         count = 0
         previous_energy = 100
-        print(len(inps), len(self.outs))
-        print(inps[0].shape, self.outs[0].shape)
+        print(len(inps), len(outs))
+        print(inpinps[0].shape, inps[0].shape, outs[0].shape)
         while not np.array_equal(old_winn, winn):
             old_winn = winn.copy()
             new_winn = []
@@ -266,7 +284,7 @@ class Corrl:
                     TRUE_ENERGY = np.mean(np.log(TRUE_ENERGY) ** 2)
 
                     self.inps = inpinps
-                    self.outs = [-np.log(1/inp[:, winn]-1) for inp in inps]
+                    self.outs = [inp[:, winn] for inp in loginps]
                     goal_inp = np.hstack((0, np.std(np.vstack(self.inps), axis=0)))
                     goal_out = np.hstack([np.std(out, axis=0) for out in self.outs])
                     goal_out = np.where(goal_out == 0, 0.0001, goal_out)
@@ -309,7 +327,7 @@ class Corrl:
                 TRUE_ENERGY = np.mean(np.log(TRUE_ENERGY) ** 2)
 
                 self.inps = inpinps
-                self.outs = [-np.log(1/inp[:, test]-1) for inp in inps]
+                self.outs = [inp[:, test] for inp in loginps]
                 goal_inp = np.hstack((0, np.std(np.vstack(self.inps), axis=0)))
                 goal_out = np.hstack([np.std(out, axis=0) for out in self.outs])
                 goal_out = np.where(goal_out == 0, 0.0001, goal_out)
@@ -327,6 +345,7 @@ class Corrl:
             #comp = np.array([i for i in range(inps[0].shape[1]) if i not in winn])
             print(winn, previous_energy)
             print()
+        self.winns[pos] = winn
         self.tokens[pos] = self.tokens[pos][winn, :]
         self.datas[pos+1] = [np.vstack([inp[:, winn] for inp in inps])]
         [print(len(data)) for data in self.datas]
