@@ -229,7 +229,7 @@ class Corrl:
         print(np.sum(np.abs(m) < 0.01, axis=1))
         print("PREDICTION")
         inp = self.Predict(m, norm = True)
-
+        inp = np.clip(inp, 0.01, 0.99)
         if pos is None:
             datas.append([inp])
             self.m.append(m)
@@ -265,6 +265,32 @@ class Corrl:
         previous_energy = 100
         print(len(inps), len(outs))
         print(inpinps[0].shape, inps[0].shape, outs[0].shape)
+
+        self.inps = [inp[:, winn] for inp in inps]
+        self.outs = outs
+        goal_inp = np.hstack((0, np.std(np.vstack(self.inps), axis=0)))
+        goal_out = np.hstack([np.std(out, axis=0) for out in self.outs])
+        goal_out = np.where(goal_out == 0, 0.0001, goal_out)
+        m = self.Coefficient_Regulation(LAMBDA = 0, energy = 1, norm = True, dim=1)
+        TRUE_ENERGY = np.abs(m) * goal_inp[:, None] / (goal_out[None, :])
+        TRUE_ENERGY = np.sum(TRUE_ENERGY, axis=0)
+        TRUE_ENERGY = np.mean(np.log(TRUE_ENERGY) ** 2)
+
+        self.inps = inpinps
+        self.outs = [inp[:, winn] for inp in loginps]
+        goal_inp = np.hstack((0, np.std(np.vstack(self.inps), axis=0)))
+        goal_out = np.hstack([np.std(out, axis=0) for out in self.outs])
+        goal_out = np.where(goal_out == 0, 0.0001, goal_out)
+        m = self.Coefficient_Regulation(LAMBDA = 0, energy = 1, norm = True, dim=1)
+        TRUE_ENERGY2 = np.abs(m) * goal_inp[:, None] / (goal_out[None, :])
+        TRUE_ENERGY2 = np.sum(TRUE_ENERGY2, axis=0)
+        TRUE_ENERGY2 = np.mean(np.log(TRUE_ENERGY2) ** 2)
+
+        print("STARTING ENERGY", TRUE_ENERGY, TRUE_ENERGY2)
+        TRUE_ENERGY += TRUE_ENERGY2
+        print("STARTING ENERGY", TRUE_ENERGY)
+
+
         while not np.array_equal(old_winn, winn):
             old_winn = winn.copy()
             new_winn = []
@@ -272,6 +298,8 @@ class Corrl:
             #old_winn = np.array([win for win in winn])
             for i in range(len(winn)):
                 power = []
+                power1 = []
+                power2 = []
                 for j in range(len(comp) + 1):
                     self.inps = [inp[:, winn] for inp in inps]
                     self.outs = outs
@@ -292,6 +320,8 @@ class Corrl:
                     TRUE_ENERGY2 = np.abs(m) * goal_inp[:, None] / (goal_out[None, :])
                     TRUE_ENERGY2 = np.sum(TRUE_ENERGY2, axis=0)
                     TRUE_ENERGY2 = np.mean(np.log(TRUE_ENERGY2) ** 2)
+                    power1.append(TRUE_ENERGY)
+                    power2.append(TRUE_ENERGY2)
                     TRUE_ENERGY += TRUE_ENERGY2
                     power.append(TRUE_ENERGY)
                     #print(power[-1], winn[i], i, np.min(power))
@@ -310,7 +340,7 @@ class Corrl:
                     break
                 new_energy.append(np.min(power))
                 comp = np.array([i for i in comp if i not in new_winn])
-                print(winn, i, np.min(power), top, new_winn[-1])
+                print(winn, i, np.min(power), top, new_winn[-1], power1[np.argmin(power)], power2[np.argmin(power)])
             new_energy_s = np.argsort(new_energy)[::-1]
             for i in range(len(new_energy)):
                 cand = new_energy_s[i:]
