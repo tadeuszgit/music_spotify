@@ -6,7 +6,7 @@ from corr_fl import Corrl
 impo = data_extraction()
 raw, wynik = impo.Open_Multiple()
 analyse = impo.Open_Multiple(both=False, all_com=False)[:-1]
-test = Corrl()
+"""test = Corrl()
 test.impo_token.Save_all(test.tokens)
 input("Tokens saved")
 for i in (2,3,2,3,2,3,2,3,2):
@@ -31,7 +31,7 @@ input()
 Corr.Show_theThing(test.datas[-2][0][-80:, :])
 print("SECOND HIDDEN LAYER")
 input()
-test.m.append(test.Coefficient_Regulation(LAMBDA=0, energy = 1, dim=2, norm=True))
+test.m.append(test.Coefficient_Regulation(LAMBDA=0, energy = 1, dim=2, norm=True))"""
 """yea = test.test()
 print(len(yea))
 [print(ye.shape) for ye in yea]
@@ -403,10 +403,11 @@ print(np.median(lolly), np.mean(lolly))"""
 #Corr.Show_theThing(np.round(pred*100))
 #Corr.Show_theThing(np.round(pred[:, 4::5]*100)/100)
 #print(pred.shape)
-#s = SpotifyAPI()
+# 
+s = SpotifyAPI()
 
 #print(lol.shape)
-name = ['Sezon 1 chapter 1','Sezon 1 chapter 2','Sezon 1 chapter 3','Sezon 1 chapter 4','Sezon 1 chapter 5','Sezon 2 chapter 1','Sezon 2 chapter 2','Sezon 2 chapter 3','Sezon 2 chapter 4','Sezon 3 chapter 1','Sezon 3 chapter 2', 'Sezon 3 chapter 3', '25 Sezon 9 chapter 1', '25 Sezon 10 chapter 1', '25 Sezon 10 chapter 2', '25 Sezon 10 chapter 3', '25 Sezon 10 chapter 4', '25 Sezon 11 chapter 1', '25 Sezon 11 chapter 2', '25 Sezon 11 chapter 3', '25 Sezon 11 chapter 4', '25 Sezon 12 chapter 1', '25 Sezon 12 chapter 2', f"Lumyn's Mixtape"]
+name = ['Sezon 1 chapter 1','Sezon 1 chapter 2','Sezon 1 chapter 3','Sezon 1 chapter 4','Sezon 1 chapter 5','Sezon 2 chapter 1','Sezon 2 chapter 2','Sezon 2 chapter 3','Sezon 2 chapter 4','Sezon 3 chapter 1','Sezon 3 chapter 2', 'Sezon 3 chapter 3', '25 Sezon 9 chapter 1', '25 Sezon 10 chapter 1', '25 Sezon 10 chapter 2', '25 Sezon 10 chapter 3', '25 Sezon 10 chapter 4', '25 Sezon 11 chapter 1', '25 Sezon 11 chapter 2', '25 Sezon 11 chapter 3', '25 Sezon 11 chapter 4', '25 Sezon 12 chapter 1', '25 Sezon 12 chapter 2', '26 Sezon 1 chapter 1', f"Lumyn's Mixtape"]
 name = name[:-1]
 print(len(name))
 
@@ -422,7 +423,7 @@ pos = [0,5,9,12,17,21]
 amount = [45,35,26,21,17,13,9,8,6,5,3,3,3,1,2,0,1,1,0,0,0,1]
 amount = [10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10]
 #s
-k = 10
+k = 40
 print("SPECIAL SONGS")
 special = []
 force = np.arange(len(name))
@@ -437,8 +438,8 @@ while len(special) < k:
 print(special)
 print(max(special))
 input("SPECIAL")
-#matrix = Corr.Prediction_naSterydach(raw[:], wynik[:], norm=True, test=analyse[-len(name):])
-matrix = test.test()[-len(name):]
+matrix = Corr.Prediction_naSterydach(raw[:], wynik[:], norm=True, test=analyse[-len(name):])
+#matrix = test.test()[-len(name):]
 Corr.Show_theThing(matrix[-1][:, -5:])
 print(np.vstack(matrix).shape)
 distance = Corr.distance_matrix(matrix=np.vstack(matrix))
@@ -469,9 +470,9 @@ input()
 for ode in order:
     Corr.Show_theThing(np.vstack(matrix)[ode, -5:])
     input()
-name_new_playlists=['Moc1', 'Intro1', 'Lepszy1', 'Pop1', 'Yes1']
+name_new_playlists=['Moc1', 'Intro1', 'Lepszy1', 'Pop1', '26 Sezon 2 chapter 1']
 s.create_new_playlists(order, name, name_new_playlists=name_new_playlists)
-kl
+#kl
 for i in range(0):
     order = Corr.ORDER(raw[:], wynik[:], analyse[-len(name):], 4, number_songs=200)
     Corr.Show_theThing(order)
