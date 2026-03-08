@@ -407,7 +407,7 @@ print(np.median(lolly), np.mean(lolly))"""
 s = SpotifyAPI()
 
 #print(lol.shape)
-name = ['Sezon 1 chapter 1','Sezon 1 chapter 2','Sezon 1 chapter 3','Sezon 1 chapter 4','Sezon 1 chapter 5','Sezon 2 chapter 1','Sezon 2 chapter 2','Sezon 2 chapter 3','Sezon 2 chapter 4','Sezon 3 chapter 1','Sezon 3 chapter 2', 'Sezon 3 chapter 3', '25 Sezon 9 chapter 1', '25 Sezon 10 chapter 1', '25 Sezon 10 chapter 2', '25 Sezon 10 chapter 3', '25 Sezon 10 chapter 4', '25 Sezon 11 chapter 1', '25 Sezon 11 chapter 2', '25 Sezon 11 chapter 3', '25 Sezon 11 chapter 4', '25 Sezon 12 chapter 1', '25 Sezon 12 chapter 2', '26 Sezon 1 chapter 1', f"Lumyn's Mixtape"]
+name = ['Sezon 1 chapter 1','Sezon 1 chapter 2','Sezon 1 chapter 3','Sezon 1 chapter 4','Sezon 1 chapter 5','Sezon 2 chapter 1','Sezon 2 chapter 2','Sezon 2 chapter 3','Sezon 2 chapter 4','Sezon 3 chapter 1','Sezon 3 chapter 2', 'Sezon 3 chapter 3', '25 Sezon 9 chapter 1', '25 Sezon 10 chapter 1', '25 Sezon 10 chapter 2', '25 Sezon 10 chapter 3', '25 Sezon 10 chapter 4', '25 Sezon 11 chapter 1', '25 Sezon 11 chapter 2', '25 Sezon 11 chapter 3', '25 Sezon 11 chapter 4', '25 Sezon 12 chapter 1', '25 Sezon 12 chapter 2', '26 Sezon 1 chapter 1', '26 Sezon 2 chapter 1', f"Lumyn's Mixtape"]
 name = name[:-1]
 print(len(name))
 
@@ -470,7 +470,7 @@ input()
 for ode in order:
     Corr.Show_theThing(np.vstack(matrix)[ode, -5:])
     input()
-name_new_playlists=['Moc1', 'Intro1', 'Lepszy1', 'Pop1', '26 Sezon 2 chapter 1']
+name_new_playlists=['Moc1', 'Intro1', 'Lepszy1', 'Pop1', '26 Sezon 3 chapter 1']
 s.create_new_playlists(order, name, name_new_playlists=name_new_playlists)
 #kl
 for i in range(0):
