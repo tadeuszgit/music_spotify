@@ -64,15 +64,16 @@ def season(name_play, pos, raw, wynik, analyse, s, name):
     order = []
     matrix = Corr.Prediction_naSterydach(raw, wynik, test=analyse, norm=True)
     for i in range(len(pos)-1):
-        oder = Corr.ORDER(SIGMA=4, matrix=matrix, number_songs=500, periods=pos[i+1]-pos[i], uniq=pos[i]*5+4+15, start=pos[i])
+        oder = Corr.ORDER(SIGMA=4, matrix=matrix[pos[i]:pos[i+1]], number_songs=500, periods=pos[i+1]-pos[i], uniq=pos[i]*5+4+15, start=pos[i])
         oder = np.array(oder)
         oder += sum([len(an) for an in analyse[:pos[i]]])
         order.append(oder[-1])
         print(oder)
+        print(oder.shape)
         print(sum([len(an) for an in analyse[:pos[i]]]))
         print(pos[i+1]-pos[i])
         print(pos[i]*5+4+15)
-        input()
+        print("SEASON", name_play[i])
     Corr.Show_theThing(np.array(order)[:, :])
     input()
     s.create_new_playlists(order, name, name_new_playlists=name_play)
@@ -198,12 +199,14 @@ while len(lista) > 1:
 #print("JESTE")
 #Corr.Show_theThing(np.array(wynik[0])[:,4:5])
 #kl"""
-"""LAMBDA = [0.07287537161205404, 2.5660051811909175, 1.5355159078634903, 1.979455937332234, 2.2799226627389144, 2.61775525971217, 2.9707910388287457, 3.225370928277267, 3.417990118193088, 3.5872789687119004, 3.7514529315290157, 3.91612975904679, 4.084955705094684, 4.261247377790878, 4.447863437946252, 4.647859528172891, 4.864138653092768, 5.099387054844317, 5.35692668652944, 5.6407490041290735, 5.9544524389931315, 6.302108992311396, 6.690343554113489, 7.128459789792394, 7.627543442538678, 8.201529839482586, 8.869133505746426, 9.655902903381381, 10.598145761144629, 11.749641448239755, 13.192124720895906, 15.05619655637692, 17.57403046506692, 21.225598587041855, 27.227057052852725, 40.15626260394809]
+LAMBDA = [0.07287537161205404, 2.5660051811909175, 1.5355159078634903, 1.979455937332234, 2.2799226627389144, 2.61775525971217, 2.9707910388287457, 3.225370928277267, 3.417990118193088, 3.5872789687119004, 3.7514529315290157, 3.91612975904679, 4.084955705094684, 4.261247377790878, 4.447863437946252, 4.647859528172891, 4.864138653092768, 5.099387054844317, 5.35692668652944, 5.6407490041290735, 5.9544524389931315, 6.302108992311396, 6.690343554113489, 7.128459789792394, 7.627543442538678, 8.201529839482586, 8.869133505746426, 9.655902903381381, 10.598145761144629, 11.749641448239755, 13.192124720895906, 15.05619655637692, 17.57403046506692, 21.225598587041855, 27.227057052852725, 40.15626260394809]
 LAMBDA = [0.0073627387199761305, 2.2915704202799647, 1.2956709657570973, 1.8286073471850095, 2.1937766209815863, 2.598434473863546, 2.9414601347127878, 3.164344239413132, 3.3316830572445846, 3.4813645178218358, 3.6283058598390876, 3.7791048468586426, 3.93842236192743, 4.10866767171411, 4.291353167504407, 4.488066334178304, 4.700183726740189, 4.92972694733594, 5.180033329864073, 
 5.455597105994371, 5.761341533163366, 6.102539923382518, 6.485472073919847, 6.917591108344112, 7.408527021743158, 7.971423575870057, 8.623904732099914, 9.389038738437934, 10.2983594223826, 11.398711269637571, 12.763601829310883, 14.515303880713159, 16.876755046871075, 20.30582850773692, 25.939898070991347, 38.02295655277304]
+LAMBDA = [-0.0045607277474000105, 2.3053390491763395, 1.2995150063707934, 1.8333071510874006, 2.206515659070641, 2.6227610162371104, 2.944366432743543, 3.163358835736759, 3.3334566172827382, 3.4836508019625665, 3.6303484212654524, 3.7807990358461567, 3.9383697454294064, 4.105081892625208, 4.283000711935099, 4.474749923524574, 4.682597153165433, 4.908323402765571, 5.154160628293165, 5.4238485229633655, 5.722015036635734, 6.054228919319529, 6.427521549142579, 6.849656439982939, 7.328967197465141, 7.876219231383234, 8.507913875579822, 9.24911177200754, 10.136113185938097, 11.220216904801097, 12.574792226082321, 14.316504569527439, 16.657544476371136, 20.035561178569417, 25.558804817376178, 37.39209910324553]
+#LAMBDA = np.ones(len(LAMBDA))
 target = (len(LAMBDA) - np.arange(len(LAMBDA))) * 0.01
 print(target)
-for i in range(1):
+for i in range(10):
     pred = raw[:]
     #pred = wynik[:]
     #LAMBDA = [5,1,8,20,22,21,16,11]
@@ -233,7 +236,12 @@ for i in range(1):
         #coef = coef2 * 0.1 + coef * 0.9
         coef_acc = Corr.Coefficient_for_all_dane(dany=pred, wyniks=wynik, unsafe=True, norm=False, LAMBDA=L)
         acc = [Corr.Prediction_ofCoefficient(coeffiecient=coef_acc, dane_onlyX=pre, norm=False) for pre in pred]
-        error = [np.mean(np.mean((acc[j][:, j*5:j*5+5] - wynik[j])**2, axis=0)**0.5/np.std(wynik[j],axis=0)) for j in range(len(acc))]
+        error = []
+        atrib = 0
+        for j in range(len(acc)):
+            error.append(np.mean(np.mean((acc[j][:, atrib:atrib+wynik[j].shape[1]] - wynik[j])**2, axis=0)**0.5/np.std(wynik[j],axis=0)))
+            atrib += wynik[j].shape[1]
+        #error = [np.mean(np.mean((acc[j][:, j*5:j*5+5] - wynik[j])**2, axis=0)**0.5/np.std(wynik[j],axis=0)) for j in range(len(acc))]
         error = np.mean(error)
 
         feature_std = np.hstack((0, np.std(np.vstack(pred), axis=0)))
@@ -248,7 +256,11 @@ for i in range(1):
         yup.append(float(TRUE_ENERGY))
         pred = [Corr.Prediction_ofCoefficient(coeffiecient=coef, dane_onlyX=pre, norm=False) for pre in pred]
         #print(np.vstack(pred).shape)
-        print("LAMBDA", L, "ERROR", error, "ENERGY", TRUE_ENERGY, TREU_LAMBDA)
+        
+        
+        #print("LAMBDA", L, "ERROR", error, "ENERGY", TRUE_ENERGY, TREU_LAMBDA)
+        
+        
         #print(L, np.std(np.std(np.vstack(pred), axis=0)), np.mean(np.std(np.vstack(pred), axis=0)), error,np.max(coef[1:,:]),np.mean(np.diag(coef[1:,:])),np.min(np.diag(coef[1:,:])), TRUE_ENERGY)
         #print(np.max(coef[1:,:]))
         
@@ -259,8 +271,8 @@ for i in range(1):
         
         #print((pred)[-1].shape)
         #print(len(pred))
-    print()
-    print("ERROR", error, "ENERGY", TRUE_ENERGY, TREU_LAMBDA)
+    #print()
+    #print("ERROR", error, "ENERGY", TRUE_ENERGY, TREU_LAMBDA)
     print(yes)
     LAMBDA = yes[:]
     #coef = Corr.Coefficient_for_all_dane(dany=pred, wyniks=wynik, unsafe=True, norm=False, LAMBDA=6)
@@ -404,10 +416,15 @@ print(np.median(lolly), np.mean(lolly))"""
 #Corr.Show_theThing(np.round(pred[:, 4::5]*100)/100)
 #print(pred.shape)
 # 
-s = SpotifyAPI()
+#s = SpotifyAPI()
 
 #print(lol.shape)
-name = ['Sezon 1 chapter 1','Sezon 1 chapter 2','Sezon 1 chapter 3','Sezon 1 chapter 4','Sezon 1 chapter 5','Sezon 2 chapter 1','Sezon 2 chapter 2','Sezon 2 chapter 3','Sezon 2 chapter 4','Sezon 3 chapter 1','Sezon 3 chapter 2', 'Sezon 3 chapter 3', '25 Sezon 9 chapter 1', '25 Sezon 10 chapter 1', '25 Sezon 10 chapter 2', '25 Sezon 10 chapter 3', '25 Sezon 10 chapter 4', '25 Sezon 11 chapter 1', '25 Sezon 11 chapter 2', '25 Sezon 11 chapter 3', '25 Sezon 11 chapter 4', '25 Sezon 12 chapter 1', '25 Sezon 12 chapter 2', '26 Sezon 1 chapter 1', '26 Sezon 2 chapter 1', f"Lumyn's Mixtape"]
+name = ['Roses - prod44.one','лазить по стенам - cenker','they are dead - DJ UNIVXRSEL','stay_w_me original - m1v',
+        'Sezon 1 chapter 1','Sezon 1 chapter 2','Sezon 1 chapter 3','Sezon 1 chapter 4','Sezon 1 chapter 5','Sezon 2 chapter 1',
+        'Sezon 2 chapter 2','Sezon 2 chapter 3','Sezon 2 chapter 4','Sezon 3 chapter 1','Sezon 3 chapter 2', 'Sezon 3 chapter 3', 
+        '25 Sezon 9 chapter 1', '25 Sezon 10 chapter 1', '25 Sezon 10 chapter 2', '25 Sezon 10 chapter 3', '25 Sezon 10 chapter 4', 
+        '25 Sezon 11 chapter 1', '25 Sezon 11 chapter 2', '25 Sezon 11 chapter 3', '25 Sezon 11 chapter 4', '25 Sezon 12 chapter 1', 
+        '25 Sezon 12 chapter 2', '26 Sezon 1 chapter 1', '26 Sezon 2 chapter 1', '26 Sezon 3 chapter 1', f"Lumyn's Mixtape"]
 name = name[:-1]
 print(len(name))
 
@@ -419,7 +436,10 @@ analyse = analyse[:-1]
 #Corr.Show_theThing(np.argsort(-lol[-1], axis=1))
 #d
 pos = [0,5,9,12,17,21]
-#season(["Maj","Czerwiec", "Lipiec","Październik", "Listopad"], pos, raw, wynik, analyse[4:], SpotifyAPI(), name)
+pos = [0,4,9,13,16,21,25]
+season(["PRE","Maj","Czerwiec", "Lipiec","Październik", "Listopad"], pos, raw, wynik, analyse[:], SpotifyAPI(), name)
+input("done SEASON")
+dasd
 amount = [45,35,26,21,17,13,9,8,6,5,3,3,3,1,2,0,1,1,0,0,0,1]
 amount = [10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10]
 #s
@@ -470,7 +490,7 @@ input()
 for ode in order:
     Corr.Show_theThing(np.vstack(matrix)[ode, -5:])
     input()
-name_new_playlists=['Moc1', 'Intro1', 'Lepszy1', 'Pop1', '26 Sezon 3 chapter 1']
+name_new_playlists=['Moc1', 'Intro1', 'Lepszy1', 'Pop1', '26 Sezon 3 chapter 2']
 s.create_new_playlists(order, name, name_new_playlists=name_new_playlists)
 #kl
 for i in range(0):
