@@ -206,7 +206,7 @@ LAMBDA = [-0.0045607277474000105, 2.3053390491763395, 1.2995150063707934, 1.8333
 #LAMBDA = np.ones(len(LAMBDA))
 target = (len(LAMBDA) - np.arange(len(LAMBDA))) * 0.01
 print(target)
-for i in range(10):
+for i in range(1):
     pred = raw[:]
     #pred = wynik[:]
     #LAMBDA = [5,1,8,20,22,21,16,11]
@@ -405,7 +405,7 @@ print(np.median(lolly), np.mean(lolly))"""
 #[print(len(ana)) for ana in analyse]
 
 #Corr.Correlation_betweenSession(raw, wynik, test=analyse[:-1])
-#Corr.lowerdimension(dany=raw, wyniks=wynik, test=analyse[:-1])
+Corr.lowerdimension(dany=raw, wyniks=wynik, test=analyse[:-1])
 #input()
 #raw = np.array(raw)
 #wynik = np.array(wynik)
@@ -416,7 +416,7 @@ print(np.median(lolly), np.mean(lolly))"""
 #Corr.Show_theThing(np.round(pred[:, 4::5]*100)/100)
 #print(pred.shape)
 # 
-#s = SpotifyAPI()
+s = SpotifyAPI()
 
 #print(lol.shape)
 name = ['Roses - prod44.one','лазить по стенам - cenker','they are dead - DJ UNIVXRSEL','stay_w_me original - m1v',
@@ -424,7 +424,8 @@ name = ['Roses - prod44.one','лазить по стенам - cenker','they are
         'Sezon 2 chapter 2','Sezon 2 chapter 3','Sezon 2 chapter 4','Sezon 3 chapter 1','Sezon 3 chapter 2', 'Sezon 3 chapter 3', 
         '25 Sezon 9 chapter 1', '25 Sezon 10 chapter 1', '25 Sezon 10 chapter 2', '25 Sezon 10 chapter 3', '25 Sezon 10 chapter 4', 
         '25 Sezon 11 chapter 1', '25 Sezon 11 chapter 2', '25 Sezon 11 chapter 3', '25 Sezon 11 chapter 4', '25 Sezon 12 chapter 1', 
-        '25 Sezon 12 chapter 2', '26 Sezon 1 chapter 1', '26 Sezon 2 chapter 1', '26 Sezon 3 chapter 1', f"Lumyn's Mixtape"]
+        '25 Sezon 12 chapter 2', '26 Sezon 1 chapter 1', '26 Sezon 2 chapter 1', '26 Sezon 3 chapter 1', '26 Sezon 3 chapter 2', 
+        f"Lumyn's Mixtape"]
 name = name[:-1]
 print(len(name))
 
@@ -437,9 +438,8 @@ analyse = analyse[:-1]
 #d
 pos = [0,5,9,12,17,21]
 pos = [0,4,9,13,16,21,25]
-season(["PRE","Maj","Czerwiec", "Lipiec","Październik", "Listopad"], pos, raw, wynik, analyse[:], SpotifyAPI(), name)
-input("done SEASON")
-dasd
+#season(["PRE","Maj","Czerwiec", "Lipiec","Październik", "Listopad"], pos, raw, wynik, analyse[:], SpotifyAPI(), name)
+
 amount = [45,35,26,21,17,13,9,8,6,5,3,3,3,1,2,0,1,1,0,0,0,1]
 amount = [10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10]
 #s
@@ -490,7 +490,7 @@ input()
 for ode in order:
     Corr.Show_theThing(np.vstack(matrix)[ode, -5:])
     input()
-name_new_playlists=['Moc1', 'Intro1', 'Lepszy1', 'Pop1', '26 Sezon 3 chapter 2']
+name_new_playlists=['past4','past3','past2','past1','next']
 s.create_new_playlists(order, name, name_new_playlists=name_new_playlists)
 #kl
 for i in range(0):

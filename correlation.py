@@ -580,7 +580,7 @@ class Correle:
         values = values[pos].real
         vectors = vectors[:, pos].real
 
-        window = 100
+        window = 250
 
         x = vectors @ np.diag(np.sqrt(values))
         #x = np.array([np.mean(x[i:i+window],axis=0) for i in range(x.shape[0] - window)])
@@ -594,7 +594,8 @@ class Correle:
         #plt.plot(x[:, 0], x[:, 1], cmap='plasma', c = np.linspace(0,1, x.shape[0]))
         plt.show()
         print(values)
-        Correle.Show_theThing(x)
+        print(np.sum(values ** 0.5))
+        #Correle.Show_theThing(x)
         print(x.shape)
     @staticmethod
     def Check_mass_correlation(dany, wyniks):
