@@ -405,7 +405,7 @@ print(np.median(lolly), np.mean(lolly))"""
 #[print(len(ana)) for ana in analyse]
 
 #Corr.Correlation_betweenSession(raw, wynik, test=analyse[:-1])
-Corr.lowerdimension(dany=raw, wyniks=wynik, test=analyse[:-1])
+#Corr.lowerdimension(dany=raw, wyniks=wynik, test=analyse[:-1])
 #input()
 #raw = np.array(raw)
 #wynik = np.array(wynik)
@@ -424,7 +424,8 @@ name = ['Roses - prod44.one','лазить по стенам - cenker','they are
         'Sezon 2 chapter 2','Sezon 2 chapter 3','Sezon 2 chapter 4','Sezon 3 chapter 1','Sezon 3 chapter 2', 'Sezon 3 chapter 3', 
         '25 Sezon 9 chapter 1', '25 Sezon 10 chapter 1', '25 Sezon 10 chapter 2', '25 Sezon 10 chapter 3', '25 Sezon 10 chapter 4', 
         '25 Sezon 11 chapter 1', '25 Sezon 11 chapter 2', '25 Sezon 11 chapter 3', '25 Sezon 11 chapter 4', '25 Sezon 12 chapter 1', 
-        '25 Sezon 12 chapter 2', '26 Sezon 1 chapter 1', '26 Sezon 2 chapter 1', '26 Sezon 3 chapter 1', '26 Sezon 3 chapter 2', 
+        '25 Sezon 12 chapter 2', '26 Sezon 1 chapter 1', '26 Sezon 2 chapter 1', '26 Sezon 3 chapter 1', '26 Sezon 3 chapter 2',
+        '26 Sezon 3 chapter 3', '26 Sezon 4 chapter 1', 
         f"Lumyn's Mixtape"]
 name = name[:-1]
 print(len(name))
@@ -447,9 +448,9 @@ k = 40
 print("SPECIAL SONGS")
 special = []
 force = np.arange(len(name))
-force = np.exp(-force / 4)
+force = np.exp(-force / 2)
 print(force)
-helper = np.zeros(force.shape)
+helper = np.ones(force.shape) * 0.8
 while len(special) < k:
     kroki = (np.ones(helper.shape) - helper) / force
     special.append(int(np.argmin(kroki)))
