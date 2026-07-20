@@ -1,6 +1,8 @@
 from correlation import Correle as Corr
 from data_import import data_extraction
 from spotifyAPI import SpotifyAPI
+
+import matplotlib.pyplot as plt
 import numpy as np
 from corr_fl import Corrl
 impo = data_extraction()
@@ -472,12 +474,40 @@ print(special)
 print(max(special))
 print(len(name))
 input("SPECIAL")
+mak = []
+for i in range(20):
+    maki = Corr.Prediction_naSterydach(raw[:-i-1], wynik[:-i-1], norm=True, test=analyse[-len(name):])
+    maki = np.vstack(maki)[:, 0]
+    mak.append(maki)
+mak = np.vstack(mak).T
+print(mak.shape)
+input("MAK")
+for i in range(80, mak.shape[0]):
+    plt.clf()
+    z_score = (mak[i].mean()) / mak[i].std() * (20 ** 0.5)
+    plt.plot(mak[i])
+    plt.axhline(mak[i].mean(), color='red')
+    plt.title(f"Z-Score: {z_score:.2f}")
+    plt.ylim(-2,2)
+    plt.pause(np.abs(z_score)/10)
+input("MAK")
 matrix = Corr.Prediction_naSterydach(raw[:], wynik[:], norm=True, test=analyse[-len(name):])
+matrix1 = Corr.Prediction_naSterydach(raw[:-1], wynik[:-1], norm=True, test=analyse[-len(name):])
+matrix = np.vstack(matrix)[:, :-1]
+matrix1 = np.vstack(matrix1)
+print(matrix.shape, matrix1.shape)
+input("MATRIX")
+diff = (matrix[:, 0] - matrix1[:, 0]) ** 2
+print(np.mean(diff) ** 0.5, np.std(diff), np.median(diff) ** 0.5, np.max(diff) ** 0.5)
+print(matrix[:, 0].std(), matrix1[:, 0].std())
+print(matrix[:, 0].mean(), matrix1[:, 0].mean())
+input("DIFF")
 #matrix = test.test()[-len(name):]
 Corr.Show_theThing(matrix[-1][:, -5:])
 print(np.vstack(matrix).shape)
 distance = Corr.distance_matrix(matrix=np.vstack(matrix))
 print(distance.shape, "DASD")
+input("DISTANCE")
 #Corr.Show_theThing(distance[:, -3:-2])
 #Corr.Show_theThing(distance[np.argsort(distance[:, -4])[:100], -4:-3])
 #input("DISTANCE")

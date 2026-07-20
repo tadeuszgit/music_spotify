@@ -286,7 +286,7 @@ class Correle:
             #input()
         coef = Correle.Coefficient_for_all_dane(dany=pred, wyniks=wynik, unsafe=True, norm=norm, LAMBDA=LAMBDA[-1])
         #print(coef.shape, test[0].shape)
-        pred = [Correle.Prediction_ofCoefficient(coeffiecient=coef, dane_onlyX=tes, norm=norm) for tes in test]
+        pred = [Correle.Prediction_ofCoefficient(coeffiecient=coef, dane_onlyX=tes, norm=False) for tes in test]
         #Correle.Show_theThing(coef[np.argsort(coef[:, -1:].T).T,-1])
         #print("loly end", LAMBDA[-1])
         #print("POWER")
@@ -295,14 +295,14 @@ class Correle:
         #Correle.Show_theThing(np.round(coef*100)/100)
         #input()
         don = np.argsort(coef[1:, :].T)
-        Correle.Show_theThing(don[:, -10:])
-        Correle.Show_theThing(coef[:, -1:])
+        #Correle.Show_theThing(don[:, -10:])
+        #Correle.Show_theThing(coef[:, -1:])
         #print(coef.shape)
         #print(np.sum(coef[:, -1:] ** 2))
         #input()
-        Correle.Show_theThing(coef[:, -5:])
-        print("FINAL COEF")
-        input()
+        #Correle.Show_theThing(coef[:, -5:])
+        #print("FINAL COEF")
+        #input()
         coef = coef[1:, 4::5][:, -5:]
         #coef = (coef - coef.mean(axis=0, keepdims=True))/coef.std(axis=0, keepdims=True)
         corr = Correle.Correaltion(matrix=coef, axis=1)
